@@ -46,25 +46,25 @@ export function LiveMonitor(){
  const current=useStreamCurrent();
  // Fixed demo configuration: 1 claim/s, 90 claims, mixed scenarios.
  const RATE=1,COUNT=90,MODE='mixed_demo';const viewId='';
- const [query,setQuery]=useState('');const [kind,setKind]=useState('all');const clearedAt=0;const [claimId,setClaimId]=useState<string|null>(null);const [openEvents,setOpenEvents]=useState(false);const [openClaims,setOpenClaims]=useState(false);
+ const [query,setQuery]=useState('');const [kind,setKind]=useState('all');const clearedAt=0;const [claimId,setClaimId]=useState<string|null>(null);const [open,setOpen]=useState(false);const [openEvents,setOpenEvents]=useState(false);const [openClaims,setOpenClaims]=useState(false);
  const latest=current.data?.session||null;const sid=viewId||latest?.session_id;
  const viewed=useQuery<StreamSession>({queryKey:['/stream/sessions/'+sid],queryFn:()=>api('/stream/sessions/'+sid),enabled:!!viewId,refetchInterval:q=>ACTIVE.includes(q.state.data?.status||'')?1500:false});
  const session:StreamSession|null|undefined=viewId?viewed.data:latest;const active=!!session&&ACTIVE.includes(session.status);
  const {events,error}=useEventFeed(sid,active);
  const claims=useQuery<any>({queryKey:['/stream/sessions/'+sid+'/claims?page_size=12'],queryFn:()=>api(`/stream/sessions/${sid}/claims?page_size=12`),enabled:!!sid,refetchInterval:active?2000:false});
- const start=useMutation({mutationFn:()=>api('/stream/sessions',{rate_per_second:RATE,max_claims:COUNT,scenario_mode:MODE}),onSuccess:()=>{setClaimId(null);client.invalidateQueries({queryKey:['/stream']});}});
+ const start=useMutation({mutationFn:()=>api('/stream/sessions',{rate_per_second:RATE,max_claims:COUNT,scenario_mode:MODE}),onSuccess:()=>{setClaimId(null);setOpen(true);client.invalidateQueries({queryKey:['/stream']});}});
  const stop=useMutation({mutationFn:(id:string)=>api(`/stream/sessions/${id}/stop`,{}),onSuccess:()=>client.invalidateQueries({queryKey:['/stream']})});
  const shown=useMemo(()=>events.filter(e=>e.event_id>clearedAt).filter(e=>kind==='all'||(kind==='signals'?tone(e.event_type)==='signal':kind==='failures'?tone(e.event_type)==='bad':kind==='claims'?e.event_type.startsWith('claim'):tone(e.event_type)==='batch')).filter(e=>!query||`${e.message} ${e.claim_id||''} ${e.case_id||''} ${e.provider_id||''}`.toLowerCase().includes(query.toLowerCase())),[events,kind,query,clearedAt]);
  const m=session?.metrics;const defaults=current.data?.defaults;const runnerUp=current.data?.runner_alive;
- return <section className="card live-monitor" aria-label="Live Claims Monitor">
-  <div className="card-head"><div><h2><Radio size={16}/> Live Claims Monitor</h2><p>Watch synthetic healthcare claims move through ClaimShield Nexus in real time.</p></div>
+ return <section className={'card live-monitor'+(open?' open':'')} aria-label="Live Claims Monitor">
+  <div className="card-head"><div><button className="monitor-toggle" aria-expanded={open} aria-label={open?'Hide live monitor details':'Show live monitor details'} onClick={()=>setOpen(!open)}><ChevronDown size={17}/><h2><Radio size={16}/> Live Claims Monitor</h2></button><p>Watch synthetic healthcare claims move through ClaimShield Nexus in real time.</p></div>
    <div className="live-controls">
     <Button size="sm" onClick={()=>start.mutate()} disabled={active||start.isPending||runnerUp===false}>{start.isPending?<LoaderCircle size={14} className="spin"/>:<Play size={14}/>}Start Live Simulation</Button>
     <Button size="sm" variant="outline" onClick={()=>latest&&stop.mutate(latest.session_id)} disabled={!latest||!ACTIVE.includes(latest.status)||latest.stop_requested||stop.isPending}><Square size={13}/>Stop Simulation</Button>
    </div></div>
   {runnerUp===false&&<div className="live-alert">Stream runner offline — run <code>docker compose up -d stream</code>.</div>}
   {(start.error||stop.error)&&<div className="live-alert" role="alert">{(start.error||stop.error)?.message}</div>}
-  {m?<div className="live-metrics">
+  {open&&<>{m?<div className="live-metrics">
    <Metric label="Generated" value={num(m.generated)} note={`of ${num(session!.intended_count)}${m.rejected?` · ${m.rejected} rejected`:''}`}/>
    <Metric label="Accepted" value={num(m.accepted)}/>
    <Metric label="Analyzed" value={num(m.analyzed)} note="screened"/>
@@ -88,7 +88,7 @@ export function LiveMonitor(){
     <div className="live-claims">{(claims.data?.items||[]).map((c:any)=><button key={c.claim_id} className={claimId===c.claim_id?'active':''} onClick={()=>setClaimId(c.claim_id)}><span className="mono">#{c.sequence}</span><strong>{c.claim_id}</strong><small>{c.scenario_label}</small><Badge value={c.analysis_status}/></button>)}{!claims.data?.items?.length&&<p className="muted">No claims yet.</p>}</div>
    </Drawer>
    {claimId&&<ClaimInspector claimId={claimId} onClose={()=>setClaimId(null)}/>}
-  </div>}
+  </div>}</>}
  </section>;
 }
 
