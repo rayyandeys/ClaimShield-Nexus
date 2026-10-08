@@ -47,6 +47,17 @@ def identifier_matches(a, b):
         elif x == y: matches[field] = {'weight': weight}
     return round(sum(m['weight'] for m in matches.values()), 4), matches, compared
 
+def eligibility(data, provider_id):
+    """Why a provider can or cannot take part in a predecessor/successor comparison (documented stream contract)."""
+    profiles = {p['provider_id']: p for p in data.get('provider_profiles', [])}
+    p = profiles.get(provider_id)
+    if not p: return {'eligible': False, 'reason': 'No provider profile (enrollment/status record); Phoenix cannot compare this provider.'}
+    roles = []
+    if p['operating_status'] in CONFIG['inactive_statuses'] and p.get('status_effective_date'): roles.append('predecessor')
+    if p.get('enrollment_date') and any(q['operating_status'] in CONFIG['inactive_statuses'] and q.get('status_effective_date') and q['status_effective_date'] < p['enrollment_date'] <= q['status_effective_date'] + timedelta(days=CONFIG['eligibility_days']) for pid, q in profiles.items() if pid != provider_id): roles.append('successor')
+    if not roles: return {'eligible': False, 'reason': f'No suspended, revoked or closed provider changed status within {CONFIG["eligibility_days"]} days before this provider enrolled, and this provider is active.'}
+    return {'eligible': True, 'roles': roles}
+
 def score_pair(components):
     total = sum(CONFIG['weights'][k] * (components[k] or 0.0) for k in COMPONENTS)
     supporting = [k for k in COMPONENTS if k != 'timing' and (components[k] or 0.0) >= CONFIG['support_threshold']]
@@ -54,8 +65,9 @@ def score_pair(components):
     flagged = total >= CONFIG['score_threshold'] and len(supporting) >= CONFIG['min_supporting_components'] and bool(behavioral)
     return round(total, 4), flagged, supporting
 
-def analyze(data):
-    """Returns (findings, link_rows). Requires provider_profiles; without them no pair is eligible."""
+def analyze(data, providers=None):
+    """Returns (findings, link_rows). Requires provider_profiles; without them no pair is eligible.
+    providers: evaluate only pairs in which one of these providers is the predecessor or the successor (stream enrichment)."""
     profiles = {p['provider_id']: p for p in data.get('provider_profiles', [])}
     by_provider = defaultdict(list)
     for c in sorted(data['claims'], key=lambda c: (c['service_date'], c['claim_id'])): by_provider[c['provider_id']].append(c)
@@ -75,6 +87,7 @@ def analyze(data):
         # Candidate generation uses the sorted enrollment index instead of comparing all provider pairs.
         for start, pid_b in starts:
             if not status_day < start <= status_day + timedelta(days=CONFIG['eligibility_days']) or pid_b == pid_a: continue
+            if providers is not None and pid_a not in providers and pid_b not in providers: continue
             end_b = start + timedelta(days=CONFIG['successor_window_days'])
             claims_b = [c for c in by_provider[pid_b] if start <= c['service_date'] <= end_b]
             if len(claims_b) < CONFIG['min_successor_claims']: continue

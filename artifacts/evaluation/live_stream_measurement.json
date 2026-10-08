@@ -1,0 +1,1366 @@
+{
+  "session_id": "STREAM-0003",
+  "requested": {
+    "claims": 60,
+    "rate_per_second": 1.0,
+    "mode": "mixed_demo",
+    "stop_after": 0
+  },
+  "final_status": "COMPLETED",
+  "wall_clock_seconds": 66.2,
+  "metrics": {
+    "generated": 60,
+    "rejected": 0,
+    "accepted": 60,
+    "analyzed": 60,
+    "fully_analyzed": 60,
+    "failed": 0,
+    "pending": 0,
+    "awaiting_immediate": 0,
+    "awaiting_enrichment": 0,
+    "status_counts": {
+      "FULLY_ANALYZED": 60
+    },
+    "new_findings": 7,
+    "cases_created": 3,
+    "cases_updated": 3,
+    "events": 608,
+    "arrival_rate_per_second": 1.017,
+    "arrivals_last_30s": 23,
+    "throughput_per_minute": 54.88,
+    "latest_fully_analyzed_at": "2026-10-08T19:05:51.706228+00:00",
+    "oldest_pending_age_seconds": 0,
+    "max_backlog": 21,
+    "ingestion_latency_ms": {
+      "mean": 8.6,
+      "p95": 28.2
+    },
+    "immediate_latency_s": {
+      "mean": 0.387,
+      "p95": 1.26
+    },
+    "end_to_end_latency_s": {
+      "mean": 11.23,
+      "p95": 18.0,
+      "max": 19.95
+    },
+    "enrichment_runs": 5,
+    "micro_batch_seconds": {
+      "mean": 3.577,
+      "max": 4.007,
+      "last": 3.303
+    },
+    "worker_errors": 0,
+    "elapsed_seconds": 65.6
+  },
+  "findings": [
+    {
+      "finding_id": "F-5e4905ce841dc4f87edb",
+      "finding_type": "duplicate_billing",
+      "engine": "rules",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "entity_id": "SC0003-0001"
+    },
+    {
+      "finding_id": "F-a6d909bfc305473a3ce7",
+      "finding_type": "consumable_quantity_anomaly",
+      "engine": "supplytrace",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "entity_id": "SC0003-0008"
+    },
+    {
+      "finding_id": "F-4d3c357f06c0be6919a8",
+      "finding_type": "impossible_timing",
+      "engine": "rules",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "entity_id": "SC0003-0010"
+    },
+    {
+      "finding_id": "F-af2491e5ee7c0cace854",
+      "finding_type": "provider_statistical_anomaly",
+      "engine": "ml",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "entity_id": "PS0003A"
+    },
+    {
+      "finding_id": "F-770fa9f9f2f469a43ccf",
+      "finding_type": "provider_statistical_anomaly",
+      "engine": "ml",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "entity_id": "PS0003B"
+    },
+    {
+      "finding_id": "F-aadcf5ee76ffe38ca717",
+      "finding_type": "provider_statistical_anomaly",
+      "engine": "ml",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "entity_id": "PS0003C"
+    },
+    {
+      "finding_id": "F-b5f09b09715d28289da1",
+      "finding_type": "stolen_id_batch",
+      "engine": "radar",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "entity_id": "PS0003C"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "CASE-cd0f44fbea61a886ce6c",
+      "title": "PS0003B \u00b7 consumable quantity anomaly",
+      "priority_score": 75.45,
+      "severity": "HIGH",
+      "case_status": "NEW",
+      "potential_financial_exposure": 17276.22,
+      "queue_position": 16
+    },
+    {
+      "case_id": "CASE-853dd1eafe6eda995f4f",
+      "title": "PS0003A \u00b7 duplicate billing",
+      "priority_score": 71.03,
+      "severity": "HIGH",
+      "case_status": "NEW",
+      "potential_financial_exposure": 493.28,
+      "queue_position": 30
+    },
+    {
+      "case_id": "CASE-3e72e0feb311c808edf2",
+      "title": "PS0003C \u00b7 provider statistical anomaly",
+      "priority_score": 68.32,
+      "severity": "MEDIUM",
+      "case_status": "NEW",
+      "potential_financial_exposure": 6204.78,
+      "queue_position": 72
+    }
+  ],
+  "stage_counts": [
+    {
+      "stage": "phoenix",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "persistence",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "isolation_forest",
+      "status": "COMPLETED",
+      "count": 56
+    },
+    {
+      "stage": "case_consolidation",
+      "status": "COMPLETED",
+      "count": 27
+    },
+    {
+      "stage": "evidence_fusion",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "member_radar",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "siu_ranking",
+      "status": "NOT_APPLICABLE",
+      "count": 33
+    },
+    {
+      "stage": "supplytrace",
+      "status": "NOT_APPLICABLE",
+      "count": 45
+    },
+    {
+      "stage": "nexus_graph",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "case_consolidation",
+      "status": "NOT_APPLICABLE",
+      "count": 33
+    },
+    {
+      "stage": "isolation_forest",
+      "status": "INSUFFICIENT_DATA",
+      "count": 4
+    },
+    {
+      "stage": "supplytrace",
+      "status": "COMPLETED",
+      "count": 15
+    },
+    {
+      "stage": "siu_ranking",
+      "status": "COMPLETED",
+      "count": 27
+    },
+    {
+      "stage": "forecast",
+      "status": "COMPLETED",
+      "count": 56
+    },
+    {
+      "stage": "forecast",
+      "status": "INSUFFICIENT_DATA",
+      "count": 4
+    },
+    {
+      "stage": "claim_rules",
+      "status": "COMPLETED",
+      "count": 60
+    },
+    {
+      "stage": "validation",
+      "status": "COMPLETED",
+      "count": 60
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "RUN-87a51a1cf2cb",
+      "status": "COMPLETED",
+      "duration_seconds": 3.281,
+      "created_at": "2026-10-08T19:04:49.575470+00:00",
+      "completed_at": "2026-10-08T19:04:52.854940+00:00",
+      "claims": 4
+    },
+    {
+      "run_id": "RUN-5972254f3bdb",
+      "status": "COMPLETED",
+      "duration_seconds": 3.319,
+      "created_at": "2026-10-08T19:05:04.915189+00:00",
+      "completed_at": "2026-10-08T19:05:08.233414+00:00",
+      "claims": 15
+    },
+    {
+      "run_id": "RUN-633a32915071",
+      "status": "COMPLETED",
+      "duration_seconds": 4.007,
+      "created_at": "2026-10-08T19:05:20.291021+00:00",
+      "completed_at": "2026-10-08T19:05:24.297792+00:00",
+      "claims": 15
+    },
+    {
+      "run_id": "RUN-3874ee8d405f",
+      "status": "COMPLETED",
+      "duration_seconds": 3.976,
+      "created_at": "2026-10-08T19:05:36.369903+00:00",
+      "completed_at": "2026-10-08T19:05:40.343749+00:00",
+      "claims": 16
+    },
+    {
+      "run_id": "RUN-576efd5a5154",
+      "status": "COMPLETED",
+      "duration_seconds": 3.303,
+      "created_at": "2026-10-08T19:05:48.404169+00:00",
+      "completed_at": "2026-10-08T19:05:51.706447+00:00",
+      "claims": 10
+    }
+  ],
+  "stop_acknowledgement": null,
+  "max_pending_observed": 20,
+  "max_awaiting_immediate_observed": 2,
+  "api_latency_ms_during_stream": {
+    "session_status": {
+      "median": 11.3,
+      "p95": 16.9,
+      "max": 46.7
+    },
+    "dataset_summary": {
+      "median": 47.7,
+      "p95": 69.9,
+      "max": 174.9
+    },
+    "siu_queue": {
+      "median": 5.5,
+      "p95": 8.8,
+      "max": 23.1
+    }
+  },
+  "samples": [
+    {
+      "t": 0.1,
+      "status": "STARTING",
+      "generated": 0,
+      "accepted": 0,
+      "analyzed": 0,
+      "fully_analyzed": 0,
+      "pending": 0,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 0,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 6.1,
+        "dataset_summary": 64.7,
+        "siu_queue": 6.6
+      }
+    },
+    {
+      "t": 1.1,
+      "status": "RUNNING",
+      "generated": 1,
+      "accepted": 1,
+      "analyzed": 0,
+      "fully_analyzed": 0,
+      "pending": 1,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 0,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.1,
+        "dataset_summary": 43.5,
+        "siu_queue": 4.2
+      }
+    },
+    {
+      "t": 2.2,
+      "status": "RUNNING",
+      "generated": 2,
+      "accepted": 2,
+      "analyzed": 2,
+      "fully_analyzed": 0,
+      "pending": 2,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 2,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.4,
+        "dataset_summary": 47.7,
+        "siu_queue": 4.8
+      }
+    },
+    {
+      "t": 3.3,
+      "status": "RUNNING",
+      "generated": 4,
+      "accepted": 4,
+      "analyzed": 3,
+      "fully_analyzed": 0,
+      "pending": 4,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 3,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 12.3,
+        "dataset_summary": 54.9,
+        "siu_queue": 5.7
+      }
+    },
+    {
+      "t": 4.3,
+      "status": "RUNNING",
+      "generated": 5,
+      "accepted": 5,
+      "analyzed": 5,
+      "fully_analyzed": 0,
+      "pending": 5,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 5,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 13.3,
+        "dataset_summary": 56.1,
+        "siu_queue": 6.7
+      }
+    },
+    {
+      "t": 5.4,
+      "status": "RUNNING",
+      "generated": 6,
+      "accepted": 6,
+      "analyzed": 6,
+      "fully_analyzed": 0,
+      "pending": 6,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 14.1,
+        "dataset_summary": 62.6,
+        "siu_queue": 7.2
+      }
+    },
+    {
+      "t": 6.5,
+      "status": "RUNNING",
+      "generated": 7,
+      "accepted": 7,
+      "analyzed": 6,
+      "fully_analyzed": 0,
+      "pending": 7,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 14.8,
+        "dataset_summary": 112.1,
+        "siu_queue": 8.6
+      }
+    },
+    {
+      "t": 7.6,
+      "status": "RUNNING",
+      "generated": 8,
+      "accepted": 8,
+      "analyzed": 7,
+      "fully_analyzed": 4,
+      "pending": 4,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 3,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 16.1,
+        "dataset_summary": 60.7,
+        "siu_queue": 6.9
+      }
+    },
+    {
+      "t": 8.7,
+      "status": "RUNNING",
+      "generated": 9,
+      "accepted": 9,
+      "analyzed": 9,
+      "fully_analyzed": 4,
+      "pending": 5,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 5,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.6,
+        "dataset_summary": 40.0,
+        "siu_queue": 4.6
+      }
+    },
+    {
+      "t": 9.7,
+      "status": "RUNNING",
+      "generated": 10,
+      "accepted": 10,
+      "analyzed": 10,
+      "fully_analyzed": 4,
+      "pending": 6,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.2,
+        "dataset_summary": 41.3,
+        "siu_queue": 4.2
+      }
+    },
+    {
+      "t": 10.8,
+      "status": "RUNNING",
+      "generated": 11,
+      "accepted": 11,
+      "analyzed": 11,
+      "fully_analyzed": 4,
+      "pending": 7,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.0,
+        "dataset_summary": 43.0,
+        "siu_queue": 4.7
+      }
+    },
+    {
+      "t": 11.8,
+      "status": "RUNNING",
+      "generated": 12,
+      "accepted": 12,
+      "analyzed": 12,
+      "fully_analyzed": 4,
+      "pending": 8,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 8,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.0,
+        "dataset_summary": 43.1,
+        "siu_queue": 4.1
+      }
+    },
+    {
+      "t": 12.9,
+      "status": "RUNNING",
+      "generated": 13,
+      "accepted": 13,
+      "analyzed": 13,
+      "fully_analyzed": 4,
+      "pending": 9,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 9,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 7.8,
+        "dataset_summary": 38.6,
+        "siu_queue": 3.7
+      }
+    },
+    {
+      "t": 13.9,
+      "status": "RUNNING",
+      "generated": 14,
+      "accepted": 14,
+      "analyzed": 14,
+      "fully_analyzed": 4,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.5,
+        "dataset_summary": 37.6,
+        "siu_queue": 4.3
+      }
+    },
+    {
+      "t": 15.0,
+      "status": "RUNNING",
+      "generated": 15,
+      "accepted": 15,
+      "analyzed": 15,
+      "fully_analyzed": 4,
+      "pending": 11,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 11,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.4,
+        "dataset_summary": 48.0,
+        "siu_queue": 5.1
+      }
+    },
+    {
+      "t": 16.0,
+      "status": "RUNNING",
+      "generated": 16,
+      "accepted": 16,
+      "analyzed": 16,
+      "fully_analyzed": 4,
+      "pending": 12,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 12,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.6,
+        "dataset_summary": 39.0,
+        "siu_queue": 4.5
+      }
+    },
+    {
+      "t": 17.1,
+      "status": "RUNNING",
+      "generated": 17,
+      "accepted": 17,
+      "analyzed": 17,
+      "fully_analyzed": 4,
+      "pending": 13,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 13,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.3,
+        "dataset_summary": 43.4,
+        "siu_queue": 4.3
+      }
+    },
+    {
+      "t": 18.1,
+      "status": "RUNNING",
+      "generated": 18,
+      "accepted": 18,
+      "analyzed": 18,
+      "fully_analyzed": 4,
+      "pending": 14,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 14,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.2,
+        "dataset_summary": 51.1,
+        "siu_queue": 6.9
+      }
+    },
+    {
+      "t": 19.2,
+      "status": "RUNNING",
+      "generated": 20,
+      "accepted": 20,
+      "analyzed": 19,
+      "fully_analyzed": 4,
+      "pending": 16,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 15,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.3,
+        "dataset_summary": 45.3,
+        "siu_queue": 4.9
+      }
+    },
+    {
+      "t": 20.3,
+      "status": "RUNNING",
+      "generated": 21,
+      "accepted": 21,
+      "analyzed": 20,
+      "fully_analyzed": 4,
+      "pending": 17,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 16,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 19.2,
+        "dataset_summary": 54.4,
+        "siu_queue": 5.6
+      }
+    },
+    {
+      "t": 21.3,
+      "status": "RUNNING",
+      "generated": 22,
+      "accepted": 22,
+      "analyzed": 22,
+      "fully_analyzed": 4,
+      "pending": 18,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 18,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 13.8,
+        "dataset_summary": 62.5,
+        "siu_queue": 6.5
+      }
+    },
+    {
+      "t": 22.4,
+      "status": "RUNNING",
+      "generated": 23,
+      "accepted": 23,
+      "analyzed": 23,
+      "fully_analyzed": 19,
+      "pending": 4,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 4,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.3,
+        "dataset_summary": 48.5,
+        "siu_queue": 7.5
+      }
+    },
+    {
+      "t": 23.5,
+      "status": "RUNNING",
+      "generated": 24,
+      "accepted": 24,
+      "analyzed": 23,
+      "fully_analyzed": 19,
+      "pending": 5,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 4,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 15.9,
+        "dataset_summary": 63.5,
+        "siu_queue": 8.6
+      }
+    },
+    {
+      "t": 24.5,
+      "status": "RUNNING",
+      "generated": 25,
+      "accepted": 25,
+      "analyzed": 25,
+      "fully_analyzed": 19,
+      "pending": 6,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.5,
+        "dataset_summary": 38.4,
+        "siu_queue": 4.0
+      }
+    },
+    {
+      "t": 25.6,
+      "status": "RUNNING",
+      "generated": 26,
+      "accepted": 26,
+      "analyzed": 26,
+      "fully_analyzed": 19,
+      "pending": 7,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.6,
+        "dataset_summary": 39.5,
+        "siu_queue": 3.9
+      }
+    },
+    {
+      "t": 26.6,
+      "status": "RUNNING",
+      "generated": 27,
+      "accepted": 27,
+      "analyzed": 27,
+      "fully_analyzed": 19,
+      "pending": 8,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 8,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.9,
+        "dataset_summary": 41.6,
+        "siu_queue": 4.4
+      }
+    },
+    {
+      "t": 27.7,
+      "status": "RUNNING",
+      "generated": 28,
+      "accepted": 28,
+      "analyzed": 28,
+      "fully_analyzed": 19,
+      "pending": 9,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 9,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 8.6,
+        "dataset_summary": 45.0,
+        "siu_queue": 5.2
+      }
+    },
+    {
+      "t": 28.7,
+      "status": "RUNNING",
+      "generated": 29,
+      "accepted": 29,
+      "analyzed": 29,
+      "fully_analyzed": 19,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.6,
+        "dataset_summary": 39.8,
+        "siu_queue": 4.1
+      }
+    },
+    {
+      "t": 29.8,
+      "status": "RUNNING",
+      "generated": 30,
+      "accepted": 30,
+      "analyzed": 29,
+      "fully_analyzed": 19,
+      "pending": 11,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 12.4,
+        "dataset_summary": 47.2,
+        "siu_queue": 5.4
+      }
+    },
+    {
+      "t": 30.8,
+      "status": "RUNNING",
+      "generated": 31,
+      "accepted": 31,
+      "analyzed": 31,
+      "fully_analyzed": 19,
+      "pending": 12,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 12,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 14.1,
+        "dataset_summary": 51.6,
+        "siu_queue": 5.9
+      }
+    },
+    {
+      "t": 31.9,
+      "status": "RUNNING",
+      "generated": 32,
+      "accepted": 32,
+      "analyzed": 32,
+      "fully_analyzed": 19,
+      "pending": 13,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 13,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.7,
+        "dataset_summary": 53.8,
+        "siu_queue": 4.6
+      }
+    },
+    {
+      "t": 33.0,
+      "status": "RUNNING",
+      "generated": 33,
+      "accepted": 33,
+      "analyzed": 33,
+      "fully_analyzed": 19,
+      "pending": 14,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 14,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.2,
+        "dataset_summary": 47.7,
+        "siu_queue": 5.8
+      }
+    },
+    {
+      "t": 34.0,
+      "status": "RUNNING",
+      "generated": 34,
+      "accepted": 34,
+      "analyzed": 34,
+      "fully_analyzed": 19,
+      "pending": 15,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 15,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.9,
+        "dataset_summary": 45.8,
+        "siu_queue": 4.1
+      }
+    },
+    {
+      "t": 35.1,
+      "status": "RUNNING",
+      "generated": 35,
+      "accepted": 35,
+      "analyzed": 35,
+      "fully_analyzed": 19,
+      "pending": 16,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 16,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 15.9,
+        "dataset_summary": 51.5,
+        "siu_queue": 7.3
+      }
+    },
+    {
+      "t": 36.2,
+      "status": "RUNNING",
+      "generated": 36,
+      "accepted": 36,
+      "analyzed": 35,
+      "fully_analyzed": 19,
+      "pending": 17,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 16,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 16.9,
+        "dataset_summary": 66.7,
+        "siu_queue": 8.8
+      }
+    },
+    {
+      "t": 37.4,
+      "status": "RUNNING",
+      "generated": 38,
+      "accepted": 38,
+      "analyzed": 37,
+      "fully_analyzed": 19,
+      "pending": 19,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 18,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 46.7,
+        "dataset_summary": 174.9,
+        "siu_queue": 23.1
+      }
+    },
+    {
+      "t": 38.5,
+      "status": "RUNNING",
+      "generated": 39,
+      "accepted": 39,
+      "analyzed": 39,
+      "fully_analyzed": 34,
+      "pending": 5,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 5,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 16.2,
+        "dataset_summary": 63.4,
+        "siu_queue": 6.6
+      }
+    },
+    {
+      "t": 39.6,
+      "status": "RUNNING",
+      "generated": 40,
+      "accepted": 40,
+      "analyzed": 40,
+      "fully_analyzed": 34,
+      "pending": 6,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 38.9,
+        "dataset_summary": 64.9,
+        "siu_queue": 8.0
+      }
+    },
+    {
+      "t": 40.6,
+      "status": "RUNNING",
+      "generated": 41,
+      "accepted": 41,
+      "analyzed": 41,
+      "fully_analyzed": 34,
+      "pending": 7,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.4,
+        "dataset_summary": 39.9,
+        "siu_queue": 5.2
+      }
+    },
+    {
+      "t": 41.7,
+      "status": "RUNNING",
+      "generated": 42,
+      "accepted": 42,
+      "analyzed": 41,
+      "fully_analyzed": 34,
+      "pending": 8,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.9,
+        "dataset_summary": 46.6,
+        "siu_queue": 6.7
+      }
+    },
+    {
+      "t": 42.7,
+      "status": "RUNNING",
+      "generated": 43,
+      "accepted": 43,
+      "analyzed": 43,
+      "fully_analyzed": 34,
+      "pending": 9,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 9,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.6,
+        "dataset_summary": 43.9,
+        "siu_queue": 6.1
+      }
+    },
+    {
+      "t": 43.8,
+      "status": "RUNNING",
+      "generated": 44,
+      "accepted": 44,
+      "analyzed": 44,
+      "fully_analyzed": 34,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.9,
+        "dataset_summary": 42.9,
+        "siu_queue": 5.0
+      }
+    },
+    {
+      "t": 44.9,
+      "status": "RUNNING",
+      "generated": 45,
+      "accepted": 45,
+      "analyzed": 45,
+      "fully_analyzed": 34,
+      "pending": 11,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 11,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.5,
+        "dataset_summary": 44.8,
+        "siu_queue": 4.0
+      }
+    },
+    {
+      "t": 45.9,
+      "status": "RUNNING",
+      "generated": 46,
+      "accepted": 46,
+      "analyzed": 46,
+      "fully_analyzed": 34,
+      "pending": 12,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 12,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.1,
+        "dataset_summary": 40.9,
+        "siu_queue": 5.5
+      }
+    },
+    {
+      "t": 47.0,
+      "status": "RUNNING",
+      "generated": 47,
+      "accepted": 47,
+      "analyzed": 47,
+      "fully_analyzed": 34,
+      "pending": 13,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 13,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.1,
+        "dataset_summary": 41.2,
+        "siu_queue": 6.0
+      }
+    },
+    {
+      "t": 48.0,
+      "status": "RUNNING",
+      "generated": 48,
+      "accepted": 48,
+      "analyzed": 47,
+      "fully_analyzed": 34,
+      "pending": 14,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 13,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 13.5,
+        "dataset_summary": 53.3,
+        "siu_queue": 7.2
+      }
+    },
+    {
+      "t": 49.1,
+      "status": "RUNNING",
+      "generated": 49,
+      "accepted": 49,
+      "analyzed": 49,
+      "fully_analyzed": 34,
+      "pending": 15,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 15,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.1,
+        "dataset_summary": 43.5,
+        "siu_queue": 4.7
+      }
+    },
+    {
+      "t": 50.1,
+      "status": "RUNNING",
+      "generated": 50,
+      "accepted": 50,
+      "analyzed": 50,
+      "fully_analyzed": 34,
+      "pending": 16,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 16,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.6,
+        "dataset_summary": 47.1,
+        "siu_queue": 4.6
+      }
+    },
+    {
+      "t": 51.2,
+      "status": "RUNNING",
+      "generated": 51,
+      "accepted": 51,
+      "analyzed": 51,
+      "fully_analyzed": 34,
+      "pending": 17,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 17,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 12.5,
+        "dataset_summary": 53.8,
+        "siu_queue": 6.2
+      }
+    },
+    {
+      "t": 52.3,
+      "status": "RUNNING",
+      "generated": 53,
+      "accepted": 53,
+      "analyzed": 51,
+      "fully_analyzed": 34,
+      "pending": 19,
+      "awaiting_immediate": 2,
+      "awaiting_enrichment": 17,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 16.3,
+        "dataset_summary": 69.9,
+        "siu_queue": 7.5
+      }
+    },
+    {
+      "t": 53.4,
+      "status": "RUNNING",
+      "generated": 54,
+      "accepted": 54,
+      "analyzed": 52,
+      "fully_analyzed": 34,
+      "pending": 20,
+      "awaiting_immediate": 2,
+      "awaiting_enrichment": 18,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 15.9,
+        "dataset_summary": 73.2,
+        "siu_queue": 10.0
+      }
+    },
+    {
+      "t": 54.5,
+      "status": "RUNNING",
+      "generated": 55,
+      "accepted": 55,
+      "analyzed": 53,
+      "fully_analyzed": 50,
+      "pending": 5,
+      "awaiting_immediate": 2,
+      "awaiting_enrichment": 3,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 15.6,
+        "dataset_summary": 65.7,
+        "siu_queue": 6.9
+      }
+    },
+    {
+      "t": 55.6,
+      "status": "RUNNING",
+      "generated": 56,
+      "accepted": 56,
+      "analyzed": 56,
+      "fully_analyzed": 50,
+      "pending": 6,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 6,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 31.7,
+        "dataset_summary": 90.4,
+        "siu_queue": 17.7
+      }
+    },
+    {
+      "t": 56.6,
+      "status": "RUNNING",
+      "generated": 57,
+      "accepted": 57,
+      "analyzed": 57,
+      "fully_analyzed": 50,
+      "pending": 7,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.7,
+        "dataset_summary": 42.4,
+        "siu_queue": 4.6
+      }
+    },
+    {
+      "t": 57.7,
+      "status": "RUNNING",
+      "generated": 58,
+      "accepted": 58,
+      "analyzed": 57,
+      "fully_analyzed": 50,
+      "pending": 8,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 7,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 12.0,
+        "dataset_summary": 48.7,
+        "siu_queue": 5.3
+      }
+    },
+    {
+      "t": 58.8,
+      "status": "RUNNING",
+      "generated": 59,
+      "accepted": 59,
+      "analyzed": 58,
+      "fully_analyzed": 50,
+      "pending": 9,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 8,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.6,
+        "dataset_summary": 49.3,
+        "siu_queue": 5.6
+      }
+    },
+    {
+      "t": 59.8,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 59,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 1,
+      "awaiting_enrichment": 9,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 11.6,
+        "dataset_summary": 47.1,
+        "siu_queue": 5.7
+      }
+    },
+    {
+      "t": 60.9,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 10.2,
+        "dataset_summary": 45.4,
+        "siu_queue": 4.3
+      }
+    },
+    {
+      "t": 61.9,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 9.7,
+        "dataset_summary": 43.8,
+        "siu_queue": 4.9
+      }
+    },
+    {
+      "t": 63.0,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 15.3,
+        "dataset_summary": 52.2,
+        "siu_queue": 5.9
+      }
+    },
+    {
+      "t": 64.1,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 13.0,
+        "dataset_summary": 51.0,
+        "siu_queue": 5.5
+      }
+    },
+    {
+      "t": 65.1,
+      "status": "DRAINING",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 50,
+      "pending": 10,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 10,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 14.7,
+        "dataset_summary": 52.9,
+        "siu_queue": 5.3
+      }
+    },
+    {
+      "t": 66.2,
+      "status": "COMPLETED",
+      "generated": 60,
+      "accepted": 60,
+      "analyzed": 60,
+      "fully_analyzed": 60,
+      "pending": 0,
+      "awaiting_immediate": 0,
+      "awaiting_enrichment": 0,
+      "failed": 0,
+      "api_ms": {
+        "session_status": 14.9,
+        "dataset_summary": 58.2,
+        "siu_queue": 10.1
+      }
+    }
+  ],
+  "note": "Measured on the local Docker Compose stack; synthetic data. Session and claims remain in the database (append-only)."
+}

@@ -89,3 +89,9 @@ class Page(Contract):
 class ObjectResponse(BaseModel):
     model_config = ConfigDict(extra='allow')
 
+
+class StreamStartInput(Contract):
+    rate_per_second: float | None = Field(default=None, ge=0.2, le=5)
+    max_claims: int | None = Field(default=None, ge=1, le=500)
+    seed: int | None = Field(default=None, ge=0, lt=2 ** 31)
+    scenario_mode: Literal['mixed_demo', 'normal_only'] = 'mixed_demo'

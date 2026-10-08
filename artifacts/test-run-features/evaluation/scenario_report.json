@@ -56,5 +56,9 @@
   ],
   "unexpected_radar_flags": [],
   "unexpected_phoenix_flags": [],
+  "live_stream_flags": {
+    "radar": [],
+    "phoenix": []
+  },
   "note": "Scenario fixtures are constructed demonstrations; agreement here is not evidence of real-world detection performance."
 }

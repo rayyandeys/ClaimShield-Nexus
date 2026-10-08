@@ -12,7 +12,7 @@ What every screen shows and does, where Groq is used, and where each engine and 
 
 | Sidebar item | Route | Purpose |
 |---|---|---|
-| Overview | `/` | Dashboard of the imported data, findings, cases and system readiness |
+| Overview | `/` | **Live Claims Monitor** (synthetic claim stream) and the dashboard of imported data, findings, cases and system readiness |
 | Data ingestion | `/ingestion` | Import, validate and analyze data; job queue |
 | Claims explorer | `/claims`, `/claims/:id` | Search claims and open one claim with its findings |
 | SupplyTrace | `/supplytrace`, `/supplytrace/:id` | Itemized supply billing compared with peers |
@@ -33,6 +33,7 @@ Every page has loading, empty and error states; tables paginate.
 | Section | What it shows / does |
 |---|---|
 | Header buttons | *Manage data* → Data ingestion; *Open SIU queue* → queue |
+| **Live Claims Monitor** | First card. **Start Live Simulation** (rate 0.5/1/2 per s, 30–120 claims, *Mixed demo* or *Ordinary only*) and **Stop Simulation** call the backend. The session strip shows status, scenario pack and seed, a session picker for earlier sessions, and *Clear display* (hides entries; deletes nothing). Twelve server-side counters: generated, accepted, analyzed, fully analyzed, pending, failed, new findings, cases, rate, backlog, micro-batch, latest analysis. The **event feed** holds committed backend events and is searchable and filterable (Claims / Findings & cases / Enrichment / Failures). Clicking an event opens its Claim detail, SupplyTrace, Case Workspace, Member radar, Nexus network or Future risk view. The **pipeline inspector** (scan icon, or a row in *Recent claims*) shows all 12 stages with status, time, findings, reason or error, and the *Fully analyzed* badge only when the backend reports it. See [LIVE_STREAM_DEMO.md](LIVE_STREAM_DEMO.md). |
 | Dataset strip | Service-date range, provider and facility counts |
 | Four stat cards | Imported claims, active findings, active investigations, potential review exposure (unique claims; upper bound, not confirmed loss) |
 | Claims activity | Monthly claim volume chart |
@@ -195,6 +196,7 @@ Groq never decides anything: all detection, scoring, simulations and resolutions
 | **Phoenix detector** | Nexus network dashed edge + inspector; case Findings panel; banners | `/network?entity=P0252` (P0251 → P0252, 0.82); subtle pair `/network?entity=P0254`; look-alike `CASE-a2bd7630032dd71dfa4d` (P0258) | `services/phoenix.py`, `services/graph.py` | same |
 | Scenario evaluation | Models & evaluation → Scenario pack evaluation | 6/6 scenarios agree | `services/pipeline.py`, `scenarios.py` | `tests/test_features_integration.py` |
 | Groq brief / challenger | Case → Generate brief / Challenge evidence → Brief tab | `CASE-27cd5d9b606a132d854e` | `services/briefs.py` | `tests/test_briefs.py`, `tests/test_integration.py` |
+| **Live Claims Monitoring** | Overview → Live Claims Monitor; claim detail banner; SIU queue; Member radar `PS000kC` | Start a 60-claim session. Duplicate SC000k-0005, supply outlier SC000k-0008, overlap SC000k-0011, radar batch PS000kC. Measured run: STREAM-0003 (cases `CASE-853dd1eafe6eda995f4f`, `CASE-cd0f44fbea61a886ce6c`, `CASE-3e72e0feb311c808edf2`) | `services/stream.py`, `services/stream_generator.py`, `stream_runner.py`, `worker.py` (`stream_enrichment`) | `tests/test_stream.py`, `tests/test_stream_integration.py`, `frontend/src/stream.test.tsx` |
 
 ### Running the tests
 ```powershell
@@ -204,4 +206,4 @@ docker compose exec backend python -m app.cli groq-check
 ```
 
 ### Full demo
-Follow [demo_script.md](demo_script.md): Member Radar → Phoenix → consolidated case → Next-Best-Evidence simulation → member confirmations → spillover → human decision and audit → false-positive safeguards.
+Live stream first: [LIVE_STREAM_DEMO.md](LIVE_STREAM_DEMO.md). Then follow [demo_script.md](demo_script.md): Member Radar → Phoenix → consolidated case → Next-Best-Evidence simulation → member confirmations → spillover → human decision and audit → false-positive safeguards.

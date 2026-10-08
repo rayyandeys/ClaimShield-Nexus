@@ -50,7 +50,7 @@
       "status": 200
     }
   ],
-  "claim_count": 21151,
+  "claim_count": 21271,
   "case_id": "CASE-27cd5d9b606a132d854e",
   "note": "Read-only live API smoke. Mutating end-to-end review flow is exercised in the isolated integration suite."
 }

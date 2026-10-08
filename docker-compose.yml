@@ -24,6 +24,10 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       GROQ_TIMEOUT_SECONDS: ${GROQ_TIMEOUT_SECONDS:-45}
+      STREAM_DEFAULT_RATE: ${STREAM_DEFAULT_RATE:-1}
+      STREAM_DEFAULT_COUNT: ${STREAM_DEFAULT_COUNT:-60}
+      STREAM_ENRICHMENT_INTERVAL_SECONDS: ${STREAM_ENRICHMENT_INTERVAL_SECONDS:-15}
+      STREAM_MAX_BACKLOG: ${STREAM_MAX_BACKLOG:-20}
     command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     ports: ["127.0.0.1:8000:8000"]
     volumes: ["./data:/data:ro", "./artifacts:/artifacts"]
@@ -44,6 +48,20 @@ services:
       backend: {condition: service_healthy}
     healthcheck:
       test: ["CMD", "python", "-m", "app.worker", "--health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  stream:
+    # Live claims monitoring runner: synthetic claim generation + immediate screening. Idle until a session is started.
+    build: ./backend
+    environment: *backend_env
+    command: ["python", "-m", "app.stream_runner"]
+    volumes: ["./data:/data:ro", "./artifacts:/artifacts"]
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.stream_runner", "--health"]
       interval: 15s
       timeout: 5s
       retries: 5

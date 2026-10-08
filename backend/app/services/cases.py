@@ -1,6 +1,6 @@
 import math
 from uuid import uuid4
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_, and_
 from sqlalchemy.dialects.postgresql import insert
 from app.core import clean, now
 from app.models import cases, findings, finding_claims, case_findings, case_entities, evidence, predictions, audit, actions, assignments, tables
@@ -81,8 +81,12 @@ def consolidate(con,outputs,data):
             else:month_groups[key]=cid
     count=0
     for component in nx.connected_components(graph):
-        claim_ids=sorted(component);cid=stable_id('CASE-',claim_ids[0]);cs=[claim_map[k] for k in claim_ids]
+        claim_ids=sorted(component);cs=[claim_map[k] for k in claim_ids]
         fs=[f for f,_ in outputs if component.intersection(f.related_claim_ids)]
+        # A component whose findings already belong to a case (e.g. linked incrementally by the live stream) keeps that
+        # case ID; otherwise the stable ID of its first claim. On a fresh database this is identical to the stable ID.
+        prior=con.execute(select(cases.c.case_id).join(case_findings).where(case_findings.c.finding_id.in_([f.finding_id for f in fs])).order_by(cases.c.created_at,cases.c.case_id).limit(1)).scalar()
+        cid=prior or stable_id('CASE-',claim_ids[0])
         provider=cs[0]['provider_id'];types=sorted({f.finding_type for f in fs})
         values=dict(case_id=cid,title=f'{provider} · {types[0].replace("_"," ")}',summary=f'{len(fs)} screening findings across {len(cs)} claims. Review source records and possible legitimate explanations.',primary_entity=provider,severity='MEDIUM',priority_score=0,potential_financial_exposure=0,evidence_strength=0,member_impact=0,payment_workflow='MIXED' if {c['claim_status'] for c in cs}>={'paid','pending'} else 'POSTPAYMENT' if any(c['claim_status']=='paid' for c in cs) else 'PREPAYMENT')
         existing=con.execute(select(cases.c.case_id).where(cases.c.case_id==cid)).scalar()
@@ -137,3 +141,72 @@ def resolve(con,finding_id,request):
         ranking=recalculate(con,cid,bump=True)
         record_action(con,cid,request.actor,'finding_resolution',request.explanation,{'status':f['status']},{'status':request.status,'verified_evidence_ids':request.verified_evidence_ids,'ranking':ranking},finding_id)
     return {'finding_id':finding_id,'status':request.status,'recalculated_cases':affected}
+
+def link_incremental(con,outputs,actor='Live stream processor'):
+    """Incremental consolidation for findings persisted outside a full analysis (live stream). Uses the same linking rules
+    as consolidate(): shared claims, provider-level findings about the same provider, and the same provider-month.
+    A component that touches existing open cases joins the highest-priority one; existing case IDs are never changed or
+    merged. Otherwise a case is created with the same stable ID scheme. Findings already linked to a case only trigger a
+    recalculation (idempotent retries). Returns {'created','updated','finding_cases','rankings'}."""
+    import networkx as nx
+    from sqlalchemy import func, or_, and_, tuple_
+    claims_t=tables['claims']
+    fids=[f.finding_id for f,_ in outputs]
+    linked={}
+    for r in con.execute(select(case_findings.c.finding_id,case_findings.c.case_id).where(case_findings.c.finding_id.in_(fids))).all():linked.setdefault(r[0],[]).append(r[1])
+    claim_ids={cid for f,_ in outputs for cid in f.related_claim_ids}
+    claim_map={c['claim_id']:dict(c) for c in con.execute(select(claims_t).where(claims_t.c.claim_id.in_(claim_ids))).mappings()}
+    fresh=[f for f,_ in outputs if f.finding_id not in linked]
+    graph=nx.Graph();month_groups={};provider_level={}
+    for f in fresh:
+        ids=f.related_claim_ids;graph.add_nodes_from(ids)
+        for cid in ids[1:]:graph.add_edge(ids[0],cid)
+        if f.entity_type=='provider' and ids:
+            if f.entity_id in provider_level:graph.add_edge(ids[0],provider_level[f.entity_id])
+            else:provider_level[f.entity_id]=ids[0]
+        for cid in ids:
+            c=claim_map[cid];key=(c['provider_id'],str(c['service_date'])[:7])
+            if key in month_groups:graph.add_edge(cid,month_groups[key])
+            else:month_groups[key]=cid
+    created,updated,finding_cases=[],[],{k:v[0] for k,v in linked.items()}
+    touched=set(cid for v in linked.values() for cid in v)
+    for f,_ in outputs:
+        for cid in linked.get(f.finding_id,[]):
+            for eid in {v for k in f.related_claim_ids if k in claim_map for v in [k,claim_map[k]['provider_id'],claim_map[k]['member_id'],claim_map[k]['facility_id']]}:con.execute(insert(case_entities).values(case_id=cid,entity_id=eid).on_conflict_do_nothing())
+    for component in nx.connected_components(graph):
+        fs=[f for f in fresh if component.intersection(f.related_claim_ids)]
+        months={(claim_map[c]['provider_id'],str(claim_map[c]['service_date'])[:7]) for c in component}
+        entities_=[f.entity_id for f in fs if f.entity_type=='provider']
+        conditions=[finding_claims.c.claim_id.in_(sorted(component))]
+        if entities_:conditions.append(and_(findings.c.entity_type=='provider',findings.c.entity_id.in_(entities_)))
+        conditions.append(tuple_(claims_t.c.provider_id,func.to_char(claims_t.c.service_date,'YYYY-MM')).in_(sorted(months)))
+        candidates=[dict(r) for r in con.execute(select(cases.c.case_id,cases.c.case_status,cases.c.priority_score).distinct().select_from(cases.join(case_findings).join(findings,findings.c.finding_id==case_findings.c.finding_id).join(finding_claims,finding_claims.c.finding_id==findings.c.finding_id).join(claims_t,claims_t.c.claim_id==finding_claims.c.claim_id)).where(or_(*conditions))).mappings()]
+        open_cases=sorted([c for c in candidates if c['case_status'] not in {'CLOSED','RESOLVED'}],key=lambda c:(-c['priority_score'],c['case_id']))
+        cs=[claim_map[k] for k in sorted(component)];types=sorted({f.finding_type for f in fs})
+        if open_cases:
+            cid=open_cases[0]['case_id'];updated.append(cid);note=f'{len(fs)} new screening finding(s) ({", ".join(types)}) linked from live-stream claims.'
+            if len(open_cases)>1:note+=f' Also related to open case(s) {", ".join(c["case_id"] for c in open_cases[1:])}; cases are not merged automatically.'
+            con.execute(audit.insert().values(event_id='EV-'+uuid4().hex,case_id=cid,actor=actor,action_type='findings_linked',explanation=note,previous_state={},new_state=clean({'finding_ids':[f.finding_id for f in fs],'claim_ids':sorted(component)})))
+        else:
+            cid=stable_id('CASE-',sorted(component)[0]);provider=cs[0]['provider_id']
+            exists=con.execute(select(cases.c.case_id).where(cases.c.case_id==cid)).scalar()
+            if not exists:
+                con.execute(cases.insert().values(case_id=cid,title=f'{provider} · {types[0].replace("_"," ")}',summary=f'{len(fs)} screening findings across {len(cs)} claims. Review source records and possible legitimate explanations.',primary_entity=provider,severity='MEDIUM',priority_score=0,potential_financial_exposure=0,evidence_strength=0,member_impact=0,payment_workflow='MIXED' if {c['claim_status'] for c in cs}>={'paid','pending'} else 'POSTPAYMENT' if any(c['claim_status']=='paid' for c in cs) else 'PREPAYMENT',case_status='NEW',evidence_version=1))
+                note='Consolidated live-stream screening findings.'+(f' Related closed/resolved case(s) {", ".join(c["case_id"] for c in candidates)} were not reopened automatically.' if candidates else '')
+                con.execute(audit.insert().values(event_id='EV-'+uuid4().hex,case_id=cid,actor=actor,action_type='case_created',explanation=note,previous_state={},new_state={'case_status':'NEW'}))
+                created.append(cid)
+            else:updated.append(cid)
+        for f in fs:
+            con.execute(insert(case_findings).values(case_id=cid,finding_id=f.finding_id).on_conflict_do_nothing());finding_cases[f.finding_id]=cid
+        for eid in {v for c in cs for v in [c['claim_id'],c['provider_id'],c['member_id'],c['facility_id']]}:con.execute(insert(case_entities).values(case_id=cid,entity_id=eid).on_conflict_do_nothing())
+        touched.add(cid)
+    rankings={cid:recalculate(con,cid) for cid in sorted(touched)}
+    return {'created':created,'updated':sorted(set(updated)-set(created)),'finding_cases':finding_cases,'rankings':rankings}
+
+def queue_position(con,case_id):
+    """1-based rank among open, scored cases (the SIU queue ordering), or None when the case is not in the queue."""
+    from sqlalchemy import func
+    row=con.execute(select(cases.c.priority_score,cases.c.case_status).where(cases.c.case_id==case_id)).first()
+    if not row or row[1] in {'CLOSED','RESOLVED'} or not row[0]:return None
+    ahead=con.execute(select(func.count()).select_from(cases).where(~cases.c.case_status.in_(['CLOSED','RESOLVED']),cases.c.priority_score>0,or_(cases.c.priority_score>row[0],and_(cases.c.priority_score==row[0],cases.c.case_id<case_id)))).scalar()
+    return ahead+1

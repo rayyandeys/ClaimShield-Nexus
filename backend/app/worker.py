@@ -16,13 +16,20 @@ log=logging.getLogger(__name__)
 HEARTBEAT=Path('/tmp/claimshield-worker-heartbeat')
 worker_id=str(uuid4());stopping=threading.Event()
 
+HEAVY={'import','analysis','train','all'}
+
 def enqueue(kind,payload=None):
-    with engine.begin() as con:
-        con.exec_driver_sql('SELECT pg_advisory_xact_lock(8231703)')
-        existing=con.execute(select(jobs).where(jobs.c.status.in_(['QUEUED','RUNNING'])).order_by(jobs.c.created_at).limit(1)).mappings().first()
-        if existing:return clean(dict(existing))
-        row=dict(job_id='JOB-'+uuid4().hex[:16],kind=kind,status='QUEUED',payload=payload or {},progress=0,attempts=0)
-        con.execute(jobs.insert().values(**row));return clean(row)
+    with engine.begin() as con:return enqueue_kind(con,kind,payload)[0]
+
+def enqueue_kind(con,kind,payload=None):
+    """Dataset jobs (import/analysis) remain exclusive with each other; a stream_enrichment job is deduplicated only
+    against another queued/running stream_enrichment job, so live monitoring never blocks or replaces a dataset job."""
+    con.exec_driver_sql('SELECT pg_advisory_xact_lock(8231703)')
+    kinds=HEAVY if kind in HEAVY else {kind}
+    existing=con.execute(select(jobs).where(jobs.c.status.in_(['QUEUED','RUNNING']),jobs.c.kind.in_(kinds)).order_by(jobs.c.created_at).limit(1)).mappings().first()
+    if existing:return clean(dict(existing)),False
+    row=dict(job_id='JOB-'+uuid4().hex[:16],kind=kind,status='QUEUED',payload=payload or {},progress=0,attempts=0)
+    con.execute(jobs.insert().values(**row));return clean(row),True
 
 def claim_job():
     with engine.begin() as con:
@@ -48,6 +55,9 @@ def run_job(job):
         result={}
         if job['kind'] in {'import','all'}:result['import']=import_dataset(job['payload'].get('directory'),progress)
         if job['kind'] in {'analysis','train','all'}:result['analysis']=analyze(progress)
+        if job['kind']=='stream_enrichment':
+            from app.services.stream import run_enrichment
+            result['enrichment']=run_enrichment(job['payload']['session_id'],job['job_id'])
         with engine.begin() as con:con.execute(update(jobs).where(jobs.c.job_id==job['job_id'],jobs.c.worker_id==worker_id).values(status='COMPLETED',progress=100,result=clean(result),completed_at=now(),lease_until=None))
     except Exception as exc:
         log.exception('Job %s failed',job['job_id'])

@@ -98,9 +98,12 @@ def evaluate_check(name, value, evaluable=True):
     rule = CONFIG['checks'][name]
     return {'name': name, 'value': value, 'op': rule['op'], 'threshold': rule['threshold'], 'required': rule['required'], 'evaluable': evaluable and value is not None, 'passed': bool(evaluable and value is not None and OPS[rule['op']](value, rule['threshold']))}
 
-def provider_batches(ix):
+def provider_batches(ix, providers=None, stored_peers=None):
+    """providers: evaluate only these candidates (stream enrichment). stored_peers: {provider_id: metrics} of previously
+    evaluated candidates, reused as the dispersion peer population for providers outside the scope."""
     candidates = {}
     for pid, claims in ix.by_provider.items():
+        if providers is not None and pid not in providers: continue
         first = {}
         for c in claims: first.setdefault(c['member_id'], c)
         new = {m: c for m, c in first.items() if c['service_date'] > ix.recent_start}
@@ -116,7 +119,8 @@ def provider_batches(ix):
         distances = [x['distance_km'] for x in members if x['distance_km'] is not None]
         candidates[pid] = {'members': members, 'metrics': {'as_of': ix.as_of, 'recent_window': [ix.recent_start + timedelta(days=1), ix.as_of], 'baseline_window': [ix.baseline_start + timedelta(days=1), ix.recent_start], 'new_members': len(new), 'baseline_new_members': baseline_new, 'baseline_active_days': max(active_days, 0), 'historical_rate_per_window': round(rate, 3), 'growth_ratio': round(len(new) / max(rate, 1.0), 3), 'share_without_prior_relationship': round(sum(x['prior_relationship'] is None for x in members) / len(members), 4), 'share_with_prior_care_context': round(sum(x['prior_context'] for x in members) / len(members), 4), 'median_member_distance_km': round(float(np.median(distances)), 1) if distances else None, 'distance_coverage': len(distances) / len(members), 'recent_claims': sum(len(x['claim_ids']) for x in members)}}
     # Dispersion percentile relative to comparable providers that also acquired new members recently.
-    peers = sorted(c['metrics']['median_member_distance_km'] for c in candidates.values() if c['metrics']['median_member_distance_km'] is not None and c['metrics']['new_members'] >= CONFIG['dispersion_peer_min_new_members'])
+    population = {**{k: v for k, v in (stored_peers or {}).items() if k not in candidates}, **{k: c['metrics'] for k, c in candidates.items()}}
+    peers = sorted(m['median_member_distance_km'] for m in population.values() if m.get('median_member_distance_km') is not None and m['new_members'] >= CONFIG['dispersion_peer_min_new_members'])
     for pid, cand in candidates.items():
         m = cand['metrics']; d = m['median_member_distance_km']
         m['geographic_dispersion_percentile'] = round(sum(p < d for p in peers) / len(peers), 4) if d is not None and len(peers) >= 5 else None
@@ -124,11 +128,13 @@ def provider_batches(ix):
         cand['qualified'] = all(c['passed'] for c in cand['checks'] if c['required'])
     return candidates
 
-def analyze(data):
-    """Returns (findings, member_rows, batch_rows, batch_member_rows). Requires no profiles; geography degrades gracefully."""
+def analyze(data, providers=None, members=None, stored_peers=None):
+    """Returns (findings, member_rows, batch_rows, batch_member_rows). Requires no profiles; geography degrades gracefully.
+    Scoped mode (stream enrichment): only the given providers are evaluated as batch candidates and only the given members
+    are returned as member rows; robust z-scores are always normalized against the full member population."""
     ix = Index(data); scores = member_scores(ix, sorted(ix.by_member)); claims = {c['claim_id']: c for c in data['claims']}
-    candidates = provider_batches(ix); outputs = []; batch_rows = []; batch_member_rows = []
-    member_rows = [dict(member_id=m, score=s, as_of=ix.as_of, signals={'signals': sig, 'coverage': cov}, detector_version=CONFIG['version']) for m, (s, sig, cov) in scores.items()]
+    candidates = provider_batches(ix, providers, stored_peers); outputs = []; batch_rows = []; batch_member_rows = []
+    member_rows = [dict(member_id=m, score=s, as_of=ix.as_of, signals={'signals': sig, 'coverage': cov}, detector_version=CONFIG['version']) for m, (s, sig, cov) in scores.items() if members is None or m in members]
     for pid, cand in sorted(candidates.items()):
         finding_id = None
         if cand['qualified']:

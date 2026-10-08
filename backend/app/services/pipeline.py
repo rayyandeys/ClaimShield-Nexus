@@ -18,6 +18,19 @@ from app.services.cases import consolidate
 
 log=logging.getLogger(__name__)
 
+def persist_findings(con,outputs,batch_id):
+    """Idempotent insert of findings, claim links and evidence by natural IDs; existing rows (and their reviewer status)
+    are never modified. Returns the IDs of findings that did not exist before."""
+    created=[]
+    for f,ev in outputs:
+        row=f.model_dump();row['score']=row.pop('anomaly_score_or_rule_result');row['created_at']=row.pop('detected_at')
+        for k in ['related_claim_ids','related_provider_ids','related_facility_ids','evidence_ids']:row.pop(k)
+        row['batch_id']=batch_id
+        if con.execute(insert(findings).values(**row).on_conflict_do_nothing()).rowcount:created.append(f.finding_id)
+        for cid in f.related_claim_ids:con.execute(insert(finding_claims).values(finding_id=f.finding_id,claim_id=cid).on_conflict_do_nothing())
+        for e in ev:con.execute(insert(evidence).values(**e.model_dump()).on_conflict_do_nothing())
+    return created
+
 def persist_detector_tables(con,batch_id,member_rows,batch_rows,batch_member_rows,link_rows):
     """Radar tables are derived snapshots and are replaced; successor links are upserted by stable pair ID."""
     for start in range(0,len(member_rows),1000):
@@ -26,6 +39,10 @@ def persist_detector_tables(con,batch_id,member_rows,batch_rows,batch_member_row
     con.execute(delete(radar_batch_members));con.execute(delete(radar_batches))
     if batch_rows:con.execute(radar_batches.insert(),[clean(dict(r,batch_id=batch_id)) for r in batch_rows])
     for start in range(0,len(batch_member_rows),1000):con.execute(radar_batch_members.insert(),[clean(r) for r in batch_member_rows[start:start+1000]])
+    persist_links(con,link_rows,batch_id)
+
+def persist_links(con,link_rows,batch_id):
+    """Successor links are upserted by stable pair ID; an existing finding reference is never cleared."""
     for r in link_rows:
         stmt=insert(successors).values(**clean(dict(r,batch_id=batch_id)))
         con.execute(stmt.on_conflict_do_update(index_elements=['link_id'],set_={**{k:stmt.excluded[k] for k in ['score','flagged','components','details','detector_version','batch_id']},'finding_id':func.coalesce(stmt.excluded.finding_id,successors.c.finding_id),'updated_at':func.now()}))
@@ -34,10 +51,15 @@ def scenario_evaluation(batch_rows,link_rows):
     """Compares detector output with the separate scenario manifest (labels never reach detection)."""
     path=settings.artifact_dir/'scenarios/v1/scenario_manifest.json'
     if not path.exists():return {'status':'NOT_AVAILABLE','reason':'Scenario pack manifest not found; run the augment command to evaluate scenarios.'}
-    manifest=json.loads(path.read_text());qualified={b['provider_id'] for b in batch_rows if b['qualified']};flagged={(l['predecessor_id'],l['successor_id']) for l in link_rows if l['flagged']}
+    manifest=json.loads(path.read_text())
+    # Live-stream cohorts are a separate demonstration pack; their detections are reported apart, never as unexpected flags.
+    from app.models import stream_sessions,tables
+    with engine.connect() as con:stream_providers=set(con.execute(select(tables['providers'].c.provider_id).where(tables['providers'].c.source_batch_id.in_(select(stream_sessions.c.batch_id)))).scalars())
+    qualified={b['provider_id'] for b in batch_rows if b['qualified'] and b['provider_id'] not in stream_providers};flagged={(l['predecessor_id'],l['successor_id']) for l in link_rows if l['flagged'] and l['successor_id'] not in stream_providers}
+    live={'radar':sorted(b['provider_id'] for b in batch_rows if b['qualified'] and b['provider_id'] in stream_providers),'phoenix':sorted(f"{l['predecessor_id']}->{l['successor_id']}" for l in link_rows if l['flagged'] and l['successor_id'] in stream_providers)}
     radar_rows=[dict(s,detected=s['provider_id'] in qualified,correct=(s['provider_id'] in qualified)==s['expected_flag']) for s in manifest['radar']]
     phoenix_rows=[dict(s,detected=(s['predecessor_id'],s['successor_id']) in flagged,correct=((s['predecessor_id'],s['successor_id']) in flagged)==s['expected_flag']) for s in manifest['phoenix']]
-    return {'status':'CALCULATED','version':manifest['version'],'radar':radar_rows,'phoenix':phoenix_rows,'unexpected_radar_flags':sorted(qualified-{s['provider_id'] for s in manifest['radar']}),'unexpected_phoenix_flags':sorted(f'{a}->{b}' for a,b in flagged-{(s['predecessor_id'],s['successor_id']) for s in manifest['phoenix']}),'note':'Scenario fixtures are constructed demonstrations; agreement here is not evidence of real-world detection performance.'}
+    return {'status':'CALCULATED','version':manifest['version'],'radar':radar_rows,'phoenix':phoenix_rows,'unexpected_radar_flags':sorted(qualified-{s['provider_id'] for s in manifest['radar']}),'unexpected_phoenix_flags':sorted(f'{a}->{b}' for a,b in flagged-{(s['predecessor_id'],s['successor_id']) for s in manifest['phoenix']}),'live_stream_flags':live,'note':'Scenario fixtures are constructed demonstrations; agreement here is not evidence of real-world detection performance.'}
 
 def evaluate(data,outputs,elapsed):
     path=settings.data_dir/'evaluation/ground_truth.csv'
@@ -95,13 +117,7 @@ def analyze(progress=lambda v:None,train=True):
         outputs=list({f.finding_id:(f,ev) for f,ev in outputs}.values())
         with engine.begin() as con:
             con.exec_driver_sql('SELECT pg_advisory_xact_lock(8231702)')
-            for f,ev in outputs:
-                row=f.model_dump();row['score']=row.pop('anomaly_score_or_rule_result');row['created_at']=row.pop('detected_at')
-                for k in ['related_claim_ids','related_provider_ids','related_facility_ids','evidence_ids']:row.pop(k)
-                row['batch_id']=batch_id
-                con.execute(insert(findings).values(**row).on_conflict_do_nothing())
-                for cid in f.related_claim_ids:con.execute(insert(finding_claims).values(finding_id=f.finding_id,claim_id=cid).on_conflict_do_nothing())
-                for e in ev:con.execute(insert(evidence).values(**e.model_dump()).on_conflict_do_nothing())
+            persist_findings(con,outputs,batch_id)
             persist_detector_tables(con,batch_id,member_rows,batch_rows,batch_member_rows,link_rows)
             case_count=consolidate(con,outputs,data)
         progress(90)

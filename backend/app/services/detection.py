@@ -26,7 +26,27 @@ def make_finding(kind, claims, sources, explanation, severity='MEDIUM', score=1.
 def policy_for(data, rule, claim):
     return next((p for p in data['billing_policies'] if p['rule_type']==rule and claim['claim_type'] in p['applicable_claim_types'].split(',') and p['effective_from'] <= claim['service_date'] <= p['effective_to']), None)
 
-def rules(data):
+def utilization_observations(claims):
+    """Rolling 30-day member/procedure counts, in service-date order, with per procedure/complexity peer counts."""
+    groups=defaultdict(list); peer_counts=defaultdict(list); observations=[]
+    for c in sorted(claims,key=lambda c:c['service_date']):
+        key=(c['member_id'],c['primary_code']); group=groups[key]
+        group[:]=[old for old in group if (c['service_date']-old['service_date']).days <= 30]
+        group.append(c); peer=(c['primary_code'],c['complexity_band'])
+        observations.append((c,len(group),peer,list(group))); peer_counts[peer].append(len(group))
+    return observations,peer_counts
+
+def utilization_thresholds(peer_counts):
+    """Peer threshold per procedure/complexity group; groups with fewer than 20 observations have none."""
+    out={}
+    for peer,vals in peer_counts.items():
+        if len(vals)>=20:
+            q1,q3=np.quantile(vals,[.25,.75]); out[peer]=max(5,float(q3+3*max(q3-q1,1)))
+    return out
+
+def rules(data,thresholds=None):
+    """thresholds: precomputed utilization thresholds (incremental screening of a scoped record set); computed from
+    data when omitted (full analysis)."""
     output=[]; claims=data['claims']; encounters={e['encounter_id']:e for e in data['encounters']}
     line_map=defaultdict(list)
     for line in data['claim_lines']: line_map[line['claim_id']].append(line)
@@ -69,16 +89,11 @@ def rules(data):
                     output.append(make_finding('impossible_timing',[oc,c],[('encounters',old['encounter_id'],old),('encounters',e['encounter_id'],e)],'Documented appointments for different members overlap for the same provider.','HIGH',limitations=['Synthetic timestamps assumed UTC; team-based staffing or scheduling errors can explain overlap.']))
             active.append((e,c))
     # Rolling utilization compared within procedure and complexity; minimum 20 peer observations.
-    groups=defaultdict(list); peer_counts=defaultdict(list); observations=[]
-    for c in sorted(claims,key=lambda c:c['service_date']):
-        key=(c['member_id'],c['primary_code']); group=groups[key]
-        group[:]=[old for old in group if (c['service_date']-old['service_date']).days <= 30]
-        group.append(c); peer=(c['primary_code'],c['complexity_band'])
-        observations.append((c,len(group),peer,list(group))); peer_counts[peer].append(len(group))
+    observations,peer_counts=utilization_observations(claims)
+    thresholds=utilization_thresholds(peer_counts) if thresholds is None else thresholds
     for c,count,peer,group in observations:
-        vals=peer_counts[peer]
-        if len(vals)>=20:
-            q1,q3=np.quantile(vals,[.25,.75]); threshold=max(5,float(q3+3*max(q3-q1,1)))
+        threshold=thresholds.get(peer)
+        if threshold is not None:
             if count>threshold and c['complexity_band']!='high':
                 output.append(make_finding('excessive_utilization',group,[('claims',g['claim_id'],g) for g in group],f'{count} same-procedure services in 30 days exceed the procedure/complexity peer threshold of {threshold:.1f}.',context={'rolling_days':30,'peer_threshold':threshold},limitations=['Treatment plans and clinical necessity are unavailable; high-complexity cases are excluded from this conservative rule.']))
     return output

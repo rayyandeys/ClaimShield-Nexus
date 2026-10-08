@@ -106,11 +106,17 @@ def claim(claim_id:str):
         ids=select(m.finding_claims.c.finding_id).where(m.finding_claims.c.claim_id==claim_id)
         result['findings']=get_findings(con,m.findings.c.finding_id.in_(ids))
         result['cases']=list(con.execute(select(m.case_findings.c.case_id).where(m.case_findings.c.finding_id.in_(ids)).distinct()).scalars())
+        stream=con.execute(select(m.stream_claims.c.session_id,m.stream_claims.c.sequence,m.stream_claims.c.analysis_status,m.stream_claims.c.ingested_at,m.stream_claims.c.fully_analyzed_at).where(m.stream_claims.c.claim_id==claim_id)).mappings().first()
+        result['stream']=dict(stream) if stream else None
         return clean(result)
 
 @app.get(API+'/claims/{claim_id}/supplytrace',response_model=ObjectResponse)
 def supplytrace(claim_id:str):
     result=claim(claim_id);path=settings.artifact_dir/'supply_comparisons.json';comparisons=json.loads(path.read_text()) if path.exists() else {}
+    if result.get('stream'):
+        # Live-stream claims: the peer comparison computed by immediate SupplyTrace screening is stored with the claim's stage.
+        with engine.connect() as con:stage=con.execute(select(m.stream_stages.c.result).where(m.stream_stages.c.claim_id==claim_id,m.stream_stages.c.stage=='supplytrace')).scalar() or {}
+        comparisons={**comparisons,**stage.get('comparisons',{})}
     result['comparisons']={s['supply_id']:comparisons.get(s['supply_id'],{'available':False,'reason':'Run analysis to compute peers.'}) for s in result['supply_items']}
     result['limitation']='Itemized supplies are already included in claim lines; do not add them to the bill twice.'
     return result
@@ -149,8 +155,15 @@ def network(entity_id:str,limit:int=Query(70,ge=10,le=150),node_types:str='',rel
         def load():
             data=load_data(con);data['successor_links']=[clean(dict(r)) for r in con.execute(select(m.successors).where(m.successors.c.flagged.is_(True))).mappings()];return data
         # Source rows only change through completed imports; successor links only through analyses.
-        key=(con.execute(select(func.max(m.batches.c.completed_at)).where(m.batches.c.status=='COMPLETED')).scalar(),con.execute(select(func.count(),func.max(m.successors.c.updated_at)).select_from(m.successors)).one(),settings.db_name)
-        result=bounded_network(load() if as_of else None,entity_id,limit,node_types.split(',') if node_types else None,relationship_types.split(',') if relationship_types else None,as_of,None if as_of else cached_graph(key,load))
+        key=(con.execute(select(func.max(m.batches.c.completed_at)).where(m.batches.c.status=='COMPLETED',m.batches.c.kind!='stream')).scalar(),con.execute(select(func.count(),func.max(m.successors.c.updated_at)).select_from(m.successors).where(m.successors.c.flagged.is_(True))).one(),settings.db_name)
+        # Live-stream records are added to the cached graph incrementally (only rows ingested since the last request).
+        watermark=con.execute(select(func.max(m.stream_claims.c.ingested_at))).scalar()
+        def increment(since):
+            sc=m.stream_claims;new_claims=select(sc.c.claim_id).where(sc.c.ingested_at>since) if since else select(sc.c.claim_id)
+            claims=[dict(r) for r in con.execute(select(m.tables['claims']).where(m.tables['claims'].c.claim_id.in_(new_claims))).mappings()]
+            stream_batches=select(m.stream_sessions.c.batch_id)
+            return {'claims':claims,'providers':[dict(r) for r in con.execute(select(m.tables['providers']).where(m.tables['providers'].c.source_batch_id.in_(stream_batches))).mappings()],'members':[dict(r) for r in con.execute(select(m.tables['members']).where(m.tables['members'].c.member_id.in_({c['member_id'] for c in claims}))).mappings()],'relationships':[dict(r) for r in con.execute(select(m.tables['relationships']).where(m.tables['relationships'].c.source_batch_id.in_(stream_batches))).mappings()]}
+        result=bounded_network(load() if as_of else None,entity_id,limit,node_types.split(',') if node_types else None,relationship_types.split(',') if relationship_types else None,as_of,None if as_of else cached_graph(key,load,increment,watermark))
         if result is None:raise HTTPException(404,'Entity not found')
         result['cases']=[dict(r) for r in con.execute(select(m.cases.c.case_id,m.cases.c.title).join(m.case_entities).where(m.case_entities.c.entity_id==entity_id).limit(20)).mappings()]
         return clean(result)
@@ -389,3 +402,74 @@ def provider_successors(provider_id:str):
 @app.get(API+'/providers/{provider_id}/predecessors',response_model=ObjectResponse)
 def provider_predecessors(provider_id:str):
     with engine.connect() as con:one(con,m.tables['providers'],'provider_id',provider_id);return {'items':link_rows(con,m.successors.c.successor_id==provider_id)}
+
+# ---- Live claims monitoring (synthetic stream) ----
+from fastapi import Header
+from fastapi.responses import StreamingResponse
+from app.schemas import StreamStartInput
+from app.services import stream as live
+
+def stream_guarded(fn):
+    try:return fn()
+    except LookupError as e:raise HTTPException(404,str(e))
+    except live.Conflict as e:raise HTTPException(409,str(e))
+    except live.Unavailable as e:raise HTTPException(503,str(e))
+    except ValueError as e:raise HTTPException(422,str(e))
+
+@app.get(API+'/stream',response_model=ObjectResponse)
+def stream_current():
+    """The active session (or the most recent one), runner availability and configurable defaults."""
+    return live.current_session()
+
+@app.get(API+'/stream/sessions',response_model=ObjectResponse)
+def stream_session_list(limit:int=Query(20,ge=1,le=100)):return {'items':live.list_sessions(limit)}
+
+@app.post(API+'/stream/sessions',response_model=ObjectResponse,status_code=201)
+def stream_start(request:StreamStartInput):
+    """Creates a durable session; the stream runner starts generating. 409 while another session is active (double
+    clicks cannot start two generators), 503 when the runner service is not running."""
+    return stream_guarded(lambda:live.start_session(request.rate_per_second,request.max_claims,request.seed,request.scenario_mode))
+
+@app.post(API+'/stream/sessions/{session_id}/stop',response_model=ObjectResponse,status_code=202)
+def stream_stop(session_id:str):return stream_guarded(lambda:live.stop_session(session_id))
+
+@app.get(API+'/stream/sessions/{session_id}',response_model=ObjectResponse)
+def stream_status(session_id:str):return stream_guarded(lambda:live.status(session_id))
+
+@app.get(API+'/stream/sessions/{session_id}/summary',response_model=ObjectResponse)
+def stream_summary(session_id:str):return stream_guarded(lambda:live.summary(session_id))
+
+@app.get(API+'/stream/sessions/{session_id}/claims',response_model=Page)
+def stream_session_claims(session_id:str,page:int=Query(1,ge=1),page_size:int=Query(50,ge=1,le=200)):return live.session_claims(session_id,page,page_size)
+
+@app.get(API+'/stream/claims/{claim_id}/coverage',response_model=ObjectResponse)
+def stream_coverage(claim_id:str):return stream_guarded(lambda:live.claim_coverage(claim_id))
+
+@app.post(API+'/stream/claims/{claim_id}/retry',response_model=ObjectResponse)
+def stream_retry(claim_id:str):return stream_guarded(lambda:live.retry_claim(claim_id))
+
+@app.get(API+'/stream/events',response_model=ObjectResponse)
+def stream_events(session_id:str='',after:int=Query(0,ge=0),limit:int=Query(200,ge=1,le=500)):
+    """Ordered committed events with ID greater than `after` (cursor polling; resume after reconnect)."""
+    with engine.connect() as con:
+        items=live.events_after(con,session_id or None,after,limit)
+        return {'items':items,'cursor':items[-1]['event_id'] if items else after,'more':len(items)==limit}
+
+@app.get(API+'/stream/events/subscribe')
+def stream_subscribe(session_id:str='',after:int=Query(0,ge=0),timeout:int=Query(300,ge=1,le=300),last_event_id:str|None=Header(default=None)):
+    """Server-Sent Events from the committed event table. Resumes from Last-Event-ID (or `after`); each poll uses a short
+    query, so no transaction stays open. The connection closes after `timeout` seconds (default five minutes) and
+    EventSource reconnects."""
+    import time as _time
+    start=int(last_event_id) if last_event_id and last_event_id.isdigit() else after
+    def gen():
+        cursor=start;deadline=_time.monotonic()+timeout;quiet=0
+        yield 'retry: 2000\n\n'
+        while _time.monotonic()<deadline:
+            with engine.connect() as con:items=live.events_after(con,session_id or None,cursor,200)
+            for e in items:
+                cursor=e['event_id'];yield f"id: {cursor}\nevent: stream\ndata: {json.dumps(e)}\n\n"
+            quiet=0 if items else quiet+1
+            if quiet and quiet%15==0:yield ': keep-alive\n\n'
+            _time.sleep(1)
+    return StreamingResponse(gen(),media_type='text/event-stream',headers={'Cache-Control':'no-cache','X-Accel-Buffering':'no'})

@@ -19,6 +19,35 @@ class FinancialRow(BaseModel):
     paid_amount_usd: Decimal = Field(ge=0)
     member_responsibility_usd: Decimal = Field(ge=0)
 
+def claim_issues(r, line_total, encounter):
+    """Row-level claim checks shared by snapshot audits and single-claim (live stream) validation: (field, message, severity)."""
+    key = r['claim_id']; out = []
+    FinancialRow.model_validate(r)
+    if r['service_date'] != r['service_start'].date(): out.append(('service_start', 'Service date mismatch', 'ERROR'))
+    if r['submitted_date'] < r['service_date']: out.append(('submitted_date', 'Submission precedes service', 'ERROR'))
+    if r['payment_date'] and r['payment_date'] < r['submitted_date']: out.append(('payment_date', 'Payment precedes submission', 'ERROR'))
+    if r['allowed_amount_usd'] > r['billed_amount_usd']: out.append(('allowed_amount_usd', 'Allowed exceeds billed', 'ERROR'))
+    if r['paid_amount_usd'] + r['member_responsibility_usd'] > r['allowed_amount_usd'] + Decimal('.02'): out.append(('paid_amount_usd', 'Paid plus responsibility exceeds allowed', 'ERROR'))
+    if abs(line_total - r['billed_amount_usd']) > Decimal('.02'): out.append(('billed_amount_usd', 'Claim total differs from lines', 'ERROR'))
+    if encounter:
+        for col in ['provider_id', 'member_id', 'facility_id']:
+            if r[col] != encounter[col]: out.append((col, 'Encounter context conflicts; retained for review', 'WARNING'))
+    else: out.append(('encounter_id', 'No encounter reference; documentation gap', 'WARNING'))
+    if r['correction_of_claim_id'] == key: out.append(('correction_of_claim_id', 'Self correction reference', 'ERROR'))
+    return out
+
+def supply_issues(r, line):
+    out = []
+    if line and line['claim_id'] != r['claim_id']: out.append(('claim_line_id', 'Supply and line belong to different claims', 'ERROR'))
+    if line and abs(line['line_billed_usd'] - r['line_billed_usd']) > Decimal('.02'): out.append(('line_billed_usd', 'Supply differs from linked line', 'ERROR'))
+    return out
+
+def estimate_issues(r, claim):
+    out = []
+    if abs(r['final_billed_usd'] - r['estimated_billed_usd'] - r['difference_usd']) > Decimal('.02'): out.append(('difference_usd', 'Estimate arithmetic mismatch', 'ERROR'))
+    if claim and r['final_billed_usd'] != claim['billed_amount_usd']: out.append(('final_billed_usd', 'Estimate final differs from claim', 'ERROR'))
+    return out
+
 def audit_directory(directory: Path):
     data, issues, sources = {}, [], {}
     def issue(table, row, field, message, severity='ERROR'):
@@ -87,28 +116,11 @@ def audit_directory(directory: Path):
         if abs(r['unit_count'] * r['unit_charge_usd'] - r['line_billed_usd']) > Decimal('1.00'):
             issue('claim_lines', r['claim_line_id'], 'line_billed_usd', 'Quantity × rounded unit price differs by more than $1', 'WARNING')
     for r in data['claims']:
-        key = r['claim_id']
-        FinancialRow.model_validate(r)
-        if r['service_date'] != r['service_start'].date(): issue('claims', key, 'service_start', 'Service date mismatch')
-        if r['submitted_date'] < r['service_date']: issue('claims', key, 'submitted_date', 'Submission precedes service')
-        if r['payment_date'] and r['payment_date'] < r['submitted_date']: issue('claims', key, 'payment_date', 'Payment precedes submission')
-        if r['allowed_amount_usd'] > r['billed_amount_usd']: issue('claims', key, 'allowed_amount_usd', 'Allowed exceeds billed')
-        if r['paid_amount_usd'] + r['member_responsibility_usd'] > r['allowed_amount_usd'] + Decimal('.02'): issue('claims', key, 'paid_amount_usd', 'Paid plus responsibility exceeds allowed')
-        if abs(line_totals[key] - r['billed_amount_usd']) > Decimal('.02'): issue('claims', key, 'billed_amount_usd', 'Claim total differs from lines')
-        e = lookup['encounters'].get(r['encounter_id'])
-        if e:
-            for col in ['provider_id', 'member_id', 'facility_id']:
-                if r[col] != e[col]: issue('claims', key, col, 'Encounter context conflicts; retained for review', 'WARNING')
-        else: issue('claims', key, 'encounter_id', 'No encounter reference; documentation gap', 'WARNING')
-        if r['correction_of_claim_id'] == key: issue('claims', key, 'correction_of_claim_id', 'Self correction reference')
+        for field, message, severity in claim_issues(r, line_totals[r['claim_id']], lookup['encounters'].get(r['encounter_id'])): issue('claims', r['claim_id'], field, message, severity)
     for r in data['supply_items']:
-        line = lookup['claim_lines'].get(r['claim_line_id'])
-        if line and line['claim_id'] != r['claim_id']: issue('supply_items', r['supply_id'], 'claim_line_id', 'Supply and line belong to different claims')
-        if line and abs(line['line_billed_usd'] - r['line_billed_usd']) > Decimal('.02'): issue('supply_items', r['supply_id'], 'line_billed_usd', 'Supply differs from linked line')
+        for field, message, severity in supply_issues(r, lookup['claim_lines'].get(r['claim_line_id'])): issue('supply_items', r['supply_id'], field, message, severity)
     for r in data['claim_estimates']:
-        if abs(r['final_billed_usd'] - r['estimated_billed_usd'] - r['difference_usd']) > Decimal('.02'): issue('claim_estimates', r['estimate_id'], 'difference_usd', 'Estimate arithmetic mismatch')
-        c = lookup['claims'].get(r['claim_id'])
-        if c and r['final_billed_usd'] != c['billed_amount_usd']: issue('claim_estimates', r['estimate_id'], 'final_billed_usd', 'Estimate final differs from claim')
+        for field, message, severity in estimate_issues(r, lookup['claims'].get(r['claim_id'])): issue('claim_estimates', r['estimate_id'], field, message, severity)
     for r in data['provider_profiles']:
         if r['operating_status'] not in {'active', 'suspended', 'revoked', 'closed'}: issue('provider_profiles', r['provider_id'], 'operating_status', 'Unknown operating status')
         if r['operating_status'] != 'active' and not r['status_effective_date']: issue('provider_profiles', r['provider_id'], 'status_effective_date', 'Inactive status requires an effective date')

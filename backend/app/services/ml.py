@@ -87,20 +87,65 @@ def train_anomaly(data):
     if len(train)<30:
         save_model(version,'isolation_forest','INSUFFICIENT_DATA',{'reason':'At least 30 eligible historical provider snapshots required.'});return []
     pipeline=Pipeline([('scale',StandardScaler()),('model',IsolationForest(n_estimators=200,contamination=.05,random_state=SEED,n_jobs=2))])
-    pipeline.fit(train[FEATURES]); raw=-pipeline.decision_function(latest[FEATURES]); train_raw=-pipeline.decision_function(train[FEATURES])
+    pipeline.fit(train[FEATURES]); train_raw=-pipeline.decision_function(train[FEATURES])
     path=settings.artifact_dir/'models'/f'{version}.joblib';path.parent.mkdir(parents=True,exist_ok=True)
     joblib.dump({'pipeline':pipeline,'features':FEATURES,'reference_scores':train_raw,'seed':SEED,'cutoff':str(cutoff)},path)
     meta={'features':FEATURES,'seed':SEED,'training_start':str(start),'training_end':str(cutoff),'scoring_cutoff':str(end),'training_providers':len(train),'normalization':'Percentile relative to historical training-provider anomaly scores; not a probability. Amount features normalized to specialty medians.','limitations':['Observable feature deviations are descriptive, not causal IsolationForest explanations.','Small synthetic provider population; no clinical validation.']}
     save_model(version,'isolation_forest','READY',meta,str(path))
-    output=[];rows=[]
+    output,rows=score_anomaly(pipeline,train_raw,latest,data,version,end,meta['limitations'])
+    save_predictions(rows);return output
+
+def score_anomaly(pipeline,train_raw,latest,data,version,end,limitations):
+    """Prediction rows and anomaly findings for the providers in `latest` (shared by training and stream inference)."""
+    output=[];rows=[];raw=-pipeline.decision_function(latest[FEATURES]) if len(latest) else []
     for (pid,f),score in zip(latest.iterrows(),raw):
         percentile=float(percentileofscore(train_raw,score))/100
         signals={key:round(float(f[key]),4) for key in FEATURES}
-        rows.append(dict(prediction_id=stable_id('P-',version,pid,0),provider_id=pid,model_version=version,horizon=0,cutoff=end,value=float(score),details={'anomaly_percentile':percentile,'signals':signals,'eligible':bool(f.eligible),'limitations':meta['limitations']}))
+        rows.append(dict(prediction_id=stable_id('P-',version,pid,0),provider_id=pid,model_version=version,horizon=0,cutoff=end,value=float(score),details={'anomaly_percentile':percentile,'signals':signals,'eligible':bool(f.eligible),'limitations':limitations}))
         if f.eligible and percentile>=.95:
             cs=sorted([c for c in data['claims'] if c['provider_id']==pid and c['service_date']>end-timedelta(days=90)],key=lambda c:float(c['allowed_amount_usd']),reverse=True)[:10]
-            if cs:output.append(make_finding('provider_statistical_anomaly',cs,[('claims',c['claim_id'],c) for c in cs],f'Provider recent behavior is at historical anomaly percentile {percentile:.1%}.',score=float(score),engine='ml',entity=pid,context={'anomaly_percentile':percentile,'observable_signals':signals},version=version,limitations=meta['limitations']))
-    save_predictions(rows);return output
+            if cs:output.append(make_finding('provider_statistical_anomaly',cs,[('claims',c['claim_id'],c) for c in cs],f'Provider recent behavior is at historical anomaly percentile {percentile:.1%}.',score=float(score),engine='ml',entity=pid,context={'anomaly_percentile':percentile,'observable_signals':signals},version=version,limitations=limitations))
+    return output,rows
+
+def latest_ready_model(model_type):
+    from sqlalchemy import select
+    with engine.connect() as con:
+        row=con.execute(select(models).where(models.c.model_type==model_type,models.c.status=='READY').order_by(models.c.created_at.desc()).limit(1)).mappings().first()
+    if not row or not row['artifact_path'] or not Path(row['artifact_path']).exists():
+        raise FileNotFoundError(f'No READY {model_type} model artifact is available; run the analysis job to train it.')
+    return dict(row),joblib.load(row['artifact_path'])
+
+def infer_anomaly(data,providers):
+    """Isolation Forest inference with the stored trained pipeline (no retraining) for the given providers.
+    Features are rebuilt with the same as-of construction at the model's scoring cutoff. Returns (findings, rows, report)."""
+    row,bundle=latest_ready_model('isolation_forest');end=pd.Timestamp(row['metadata']['scoring_cutoff']).date()
+    latest=feature_frame(data,end);latest=latest[latest.index.isin(providers)]
+    output,rows=score_anomaly(bundle['pipeline'],bundle['reference_scores'],latest,data,row['model_version'],end,row['metadata'].get('limitations',[]))
+    report={pid:{'eligible':bool(latest.loc[pid,'eligible']) if pid in latest.index else False,'claim_count':int(latest.loc[pid,'claim_count']) if pid in latest.index else 0} for pid in providers}
+    for r in rows:report[r['provider_id']].update(percentile=r['details']['anomaly_percentile'],score=r['value'])
+    return output,rows,{'model_version':row['model_version'],'scoring_cutoff':str(end),'providers':report}
+
+def scoring_cutoff(model_version,data):
+    """The as-of date the model scored at when trained (its stored predictions), so stream inference uses the same
+    feature construction; falls back to the latest service date."""
+    from sqlalchemy import select, func
+    with engine.connect() as con:value=con.execute(select(func.max(predictions.c.cutoff)).where(predictions.c.model_version==model_version)).scalar()
+    return value or max(c['service_date'] for c in data['claims'])
+
+def infer_forecast(data,providers):
+    """30/60/90-day forecast inference with the stored models; ineligible providers (fewer than 3 recent claims) get no
+    prediction. Returns (rows, report)."""
+    rows=[];report={}
+    for horizon in [30,60,90]:
+        row,bundle=latest_ready_model(f'forecast_{horizon}');cutoff=scoring_cutoff(row['model_version'],data)
+        latest=feature_frame(data,cutoff);latest=latest[latest.index.isin(providers)]
+        values=bundle['model'].predict_proba(latest[FEATURES])[:,1] if len(latest) else []
+        for (pid,f),p in zip(latest.iterrows(),values):
+            rows.append(dict(prediction_id=stable_id('P-',row['model_version'],pid,horizon),provider_id=pid,model_version=row['model_version'],horizon=horizon,cutoff=cutoff,value=float(p) if f.eligible else None,details={'target':TARGET,'eligible':bool(f.eligible),'signals':{k:float(f[k]) for k in FEATURES},'limitations':row['metadata'].get('limitations',[]),'source':'stream inference with stored model'}))
+            report.setdefault(pid,{})[str(horizon)]=round(float(p),4) if f.eligible else None
+            report[pid]['eligible']=bool(f.eligible)
+        report.setdefault('_models',{})[str(horizon)]=row['model_version']
+    return rows,report
 
 def forecast_training(data):
     start=min(c['service_date'] for c in data['claims']);end=max(c['service_date'] for c in data['claims']);events=event_claim_ids(data)

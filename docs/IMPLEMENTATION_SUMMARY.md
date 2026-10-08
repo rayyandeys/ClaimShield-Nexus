@@ -1,6 +1,6 @@
 # ClaimShield Nexus — Implementation Summary
 
-Status as of **2026-10-08**. Covers everything done on this laptop since the project handoff: environment recovery, fixes to the existing system, the Groq integration, and three new investigation features. All work is on branch `main` and is **not yet committed**.
+Status as of **2026-10-08**. Covers everything done on this laptop since the project handoff: environment recovery, fixes to the existing system, the Groq integration, and three new investigation features. The three investigation features are committed; live claims monitoring is **not yet committed**.
 
 Related documents:
 - [PROJECT_STATUS_AUDIT.md](PROJECT_STATUS_AUDIT.md) — the original audit of the handed-over project
@@ -76,6 +76,24 @@ Recommends the three evidence requests most likely to change a capacity-limited 
 - **Audit:** request created / received / reviewed / withdrawn, finding corroborated, simulated notice generated, simulated response recorded (never "member contacted").
 - **Evaluation:** scenario results written to `artifacts/evaluation/scenario_report.json` and shown on *Models & evaluation*.
 
+### 4.5 Live Claims Monitoring (added 2026-10-08)
+Overview gets a **Live Claims Monitor** with Start/Stop. A backend generator streams synthetic claims (default 60 at 1/s) through the real pipeline:
+- **Immediate screening** in a new `stream` service: validation, persistence, Claim Rules, SupplyTrace, findings, case linking, SIU recalculation.
+- **Background micro-batches** on the existing worker (`stream_enrichment` jobs every 15 s): Isolation Forest and forecast inference with the stored models, Nexus graph, Member Radar and Phoenix, all scoped to the affected providers and members, then final case reconciliation.
+- **Coverage:** every claim is tracked across 12 stages and is *Fully analyzed* only when all are terminal.
+- **Events:** committed database events (outbox) delivered by cursor polling (SSE also available). Each event is clickable to the claim, case, radar, network or forecast view.
+- **Isolation:** each session uses its own synthetic provider cohort, so replays never touch P0252/P0258.
+
+Details: [LIVE_CLAIMS_MONITORING.md](LIVE_CLAIMS_MONITORING.md) · walkthrough: [LIVE_STREAM_DEMO.md](LIVE_STREAM_DEMO.md).
+
+**Measured (STREAM-0003):**
+- 60/60 claims fully analyzed, 0 failed, at 1.02/s
+- end-to-end latency mean 11.2 s, p95 18.0 s
+- micro-batch 3.6 s mean
+- the dashboard API stayed at about 48 ms median during the stream
+
+**Migration 0003** (additive): `stream_sessions`, `stream_claims`, `stream_claim_stages`, `stream_events`, `stream_enrichment_runs`, `stream_runners`.
+
 ## 5. Database and data
 
 **Migration `0002`** (additive only; safe on populated databases): `provider_profiles`, `member_profiles`, `evidence_requests`, `member_confirmations`, `member_risk`, `radar_batches`, `radar_batch_members`, `provider_successors`.
@@ -91,16 +109,17 @@ Recommends the three evidence requests most likely to change a capacity-limited 
 | Address-only look-alike | P0255 → P0256 | Not flagged, 0.06 |
 | Documented practice acquisition | P0257 → P0258 | Flagged 0.59, resolvable with ownership records |
 
-## 6. Tests (latest run, 2026-10-08)
+## 6. Tests (latest full `scripts/test.ps1` run, 2026-10-08)
 
 | Suite | Result |
 |---|---|
-| Backend unit + existing integration (`claimshield_test`) | 98 passed |
-| Feature workflow end-to-end (disposable `claimshield_features_test`) | 11 passed |
-| Frontend (Vitest) | 15 passed |
+| Backend unit + existing integration (`claimshield_test`) | 114 passed (98 + 16 stream generator) |
+| Feature + live-stream workflows end-to-end (disposable `claimshield_features_test`) | 26 passed (11 + 15 stream) |
+| Frontend (Vitest) | 24 passed (15 + 9 Live Claims Monitor) |
 | TypeScript / production build | Pass |
 | Live API smoke on the demo database | PASS |
-| Browser walkthrough (8 demo stages, real clicks) | Done |
+| Browser walkthrough (8 demo stages, real clicks) | Done (before live monitoring) |
+| Measured live stream (STREAM-0003, demo stack) | 60/60 fully analyzed, 0 failed |
 
 Run everything with `./scripts/test.ps1` from PowerShell.
 
@@ -112,6 +131,8 @@ The demo database (`claimshield`) has the scenario pack applied and contains act
 - The P0258 Phoenix finding resolved via ownership records (`CASE-a2bd7630032dd71dfa4d`).
 
 Stage 5 of the demo can be repeated with remaining claims; repeating stage 8 exactly needs a fresh database.
+
+Live stream sessions on the demo database: STREAM-0001 (completed), STREAM-0002 (stopped, 0 claims) and STREAM-0003 (clean measured run). Together they add 120 claims, 14 findings and 6 cases for the cohort providers PS0001* and PS0003*. Content hashes taken before and after show that every pre-existing finding status, audit event, case, evidence request and confirmation is unchanged.
 
 ## 8. Known limitations
 

@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     groq_api_key: str = ''
     groq_model: str = 'openai/gpt-oss-120b'
     groq_timeout_seconds: float = 45
+    # Live claims monitoring (synthetic stream). Defaults chosen from the measured local run; see docs/LIVE_CLAIMS_MONITORING.md.
+    stream_default_rate: float = 1.0
+    stream_default_count: int = 60
+    stream_max_count: int = 500
+    stream_enrichment_interval_seconds: float = 15
+    stream_max_backlog: int = 20
 
 settings = Settings()
 engine = create_engine(URL.create('postgresql+psycopg', username='claimshield', password=settings.db_password, host=settings.db_host, port=settings.db_port, database=settings.db_name), pool_pre_ping=True)

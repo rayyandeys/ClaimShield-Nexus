@@ -1,0 +1,1654 @@
+# CODEX MASTER PROMPT — CLAIMSHIELD NEXUS LIVE CLAIMS MONITORING
+
+## MISSION: Implement Real-Time Synthetic Claims Streaming with Full Analytical Pipeline Coverage
+
+You are working inside the **existing ClaimShield Nexus application**, developed by Team CIPHER for the Build to Care hackathon.
+
+Your task is to implement a complete **Live Claims Monitoring Mode** on top of the existing application.
+
+This is an enhancement of the current working system, not a new application.
+
+### Primary objective
+
+Add a **Start Live Simulation** button to the existing Overview dashboard.
+
+When clicked, the system must:
+
+1. Generate approximately one valid synthetic healthcare claim every second.
+2. Persist each claim and its supporting records in PostgreSQL.
+3. Run immediate applicable detection checks.
+4. Schedule deeper analytical processing through the existing worker architecture.
+5. Ensure every accepted claim eventually receives coverage from every applicable analytical engine.
+6. Generate genuine source-linked findings when applicable.
+7. Update affected investigation cases.
+8. Recalculate affected SIU priorities.
+9. Show actual processing events and database-backed changes in the frontend.
+10. Allow the investigator to click an incoming claim, finding, or updated case and navigate to its detail page.
+11. Support stopping, draining, restarting, and replaying a controlled synthetic stream.
+
+**This must be real backend functionality. Do not simulate processing solely through frontend counters, timers, or hardcoded alerts.**
+
+The ultimate demonstration should be:
+
+**Start simulation → Claim arrives → Database saves it → Detection engines analyze it → Findings appear → Investigation case updates → SIU ranking changes → Frontend reflects committed results.**
+
+The application must remain responsive throughout.
+
+---
+
+# SECTION 1 — UNDERSTAND THE CURRENT APPLICATION
+
+## 1.1 Existing technical architecture
+
+ClaimShield Nexus currently uses:
+
+- React and TypeScript frontend
+- Vite
+- FastAPI backend
+- PostgreSQL
+- SQLAlchemy and migrations
+- Docker Compose
+- Python analytics worker
+- Scikit-learn
+- NetworkX
+- Cytoscape.js
+- Groq API for evidence-assisted investigation
+
+Verify actual dependencies, configuration, service names, and versions before changing anything.
+
+## 1.2 Existing analysis and investigation systems
+
+The application already contains:
+
+1. Claim Rules Engine
+2. SupplyTrace itemized billing analysis
+3. Isolation Forest anomaly detection
+4. 30/60/90-day future-risk forecasting
+5. Nexus Network relationship analysis
+6. Compromised Member ID Radar
+7. Phoenix Provider Detector
+8. Evidence fusion and finding persistence
+9. Case consolidation
+10. Smart SIU prioritization
+11. Next-Best-Evidence recommendations
+12. Member confirmation workflow
+13. Evidence review and investigator decisions
+14. Groq Investigation Brief
+15. Groq Evidence Challenger
+16. Human review and audit trails
+
+These existing systems must continue functioning.
+
+The streaming feature must integrate into them rather than duplicating them.
+
+## 1.3 Existing application screens
+
+The currently documented frontend routes include:
+
+- Overview: `/`
+- Data Ingestion: `/ingestion`
+- Claims Explorer: `/claims`
+- Claim Detail: `/claims/:id`
+- SupplyTrace: `/supplytrace`
+- SupplyTrace Detail: `/supplytrace/:id`
+- Nexus Network: `/network`
+- Member Radar: `/radar`
+- Member Batch Detail: `/radar/:providerId`
+- Future Risk: `/forecast`
+- Smart SIU Queue: `/queue`
+- Case Workspace: `/cases/:id`
+- Models & Evaluation: `/evaluation`
+
+Inspect the actual frontend router and API client. Use the real conventions rather than blindly assuming these are the only routes.
+
+## 1.4 Existing source code
+
+Relevant existing backend files reportedly include:
+
+- `backend/app/services/ingestion.py`
+- `backend/app/services/pipeline.py`
+- `backend/app/services/detection.py`
+- `backend/app/services/ml.py`
+- `backend/app/services/graph.py`
+- `backend/app/services/radar.py`
+- `backend/app/services/phoenix.py`
+- `backend/app/services/cases.py`
+- `backend/app/services/evidence.py`
+- `backend/app/services/briefs.py`
+- `backend/app/main.py`
+
+Read these files and all relevant schemas, models, migrations, services, and tests.
+
+Use the actual repository structure.
+
+Do not create parallel versions of existing analysis engines.
+
+---
+
+# SECTION 2 — PRESERVE THE EXISTING DEMO
+
+The existing synthetic database, following the documented scenario augmentation and analysis workflow, has approximately:
+
+- 21,151 claims
+- 1,599 findings
+- 898 investigation cases
+- Six controlled synthetic scenarios with 6/6 expected outcomes
+
+These are historical reference values, not immutable counts.
+
+Preserve the original synthetic data and scenario records.
+
+Important existing demo entities include:
+
+### Main suspicious scenario
+
+- Provider: `P0252`
+- Phoenix predecessor: `P0251`
+- Case: `CASE-27cd5d9b606a132d854e`
+- Reported Phoenix similarity: approximately 0.82
+- Initial case priority: approximately 86.72
+
+### Legitimate high-growth scenario
+
+- Provider: `P0259`
+- Member Radar result: Not flagged
+
+### Address-only Phoenix counterexample
+
+- Providers: `P0255` and `P0256`
+- Phoenix result: Not flagged
+
+### Documented acquisition scenario
+
+- Provider: `P0258`
+- Case: `CASE-a2bd7630032dd71dfa4d`
+- Acquisition evidence: `REL00423`
+
+The stream must not delete, replace, invalidate, or silently modify the underlying scenario records.
+
+Do not reset the existing database.
+
+Do not delete PostgreSQL volumes.
+
+Do not regenerate the entire dataset merely to implement streaming.
+
+New stream records must use unique, traceable identifiers.
+
+Existing review decisions, evidence records, audit trails, and investigation states must be preserved.
+
+If new claims legitimately change SIU rankings or dashboard counts, display the actual new values rather than trying to preserve historic ranks artificially.
+
+---
+
+# SECTION 3 — MANDATORY REPOSITORY AUDIT
+
+Before writing implementation code, inspect the current repository and identify:
+
+1. How claim ingestion currently works.
+2. Whether individual claim insertion is already supported.
+3. How claim lines, supplies, encounters and referrals are persisted.
+4. How the analytics worker receives jobs.
+5. Whether the worker supports multiple job types.
+6. Whether analysis functions support scoped or incremental execution.
+7. Whether individual rules can be evaluated without reprocessing the full dataset.
+8. Whether SupplyTrace can analyze a newly inserted claim using existing peer statistics.
+9. How Isolation Forest features are constructed.
+10. Whether trained models remain available for inference.
+11. How 30/60/90-day features and predictions are computed.
+12. How Member Radar computes historical and recent windows.
+13. How Phoenix candidate comparisons are generated.
+14. How Nexus Graph relationships are rebuilt or refreshed.
+15. How finding IDs are assigned.
+16. How cases are consolidated and deduplicated.
+17. How existing human review decisions survive reanalysis.
+18. How SIU priorities are calculated and persisted.
+19. How Next-Best-Evidence reads current case and queue states.
+20. How frontend data is fetched and invalidated.
+
+### Audit deliverable
+
+Before substantial changes, output a concise integration plan showing:
+
+- Existing functions to reuse.
+- New functions required.
+- New tables or columns required.
+- Existing worker components to extend.
+- How streaming events reach React.
+- Which engines can process incrementally.
+- Which engines require micro-batches.
+- How complete analytical coverage will be tracked.
+- How existing investigations will be protected.
+
+Then proceed with implementation.
+
+Do not stop after writing the audit report unless an irreversible change or external blocker requires explicit approval.
+
+---
+
+# SECTION 4 — THE REQUIRED HYBRID ARCHITECTURE
+
+Implement two distinct analytical processing layers.
+
+## Layer A — Immediate Processing
+
+For each new synthetic claim:
+
+1. Generate the synthetic claim.
+2. Validate its fields and foreign-key relationships.
+3. Insert the claim and applicable supporting records into PostgreSQL.
+4. Record the committed ingestion event.
+5. Execute applicable lightweight Claim Rules.
+6. Execute applicable SupplyTrace checks.
+7. Run existing-model inference if the necessary features are ready.
+8. Persist source-linked detection findings.
+9. Reconcile affected investigation cases.
+10. Recalculate affected case priorities.
+11. Publish processing results.
+
+The target arrival rate is one claim per second.
+
+This does not mean every analytical stage must finish within one second.
+
+Keep ingestion and processing separate so that slow analysis does not interrupt claim generation.
+
+## Layer B — Background Analytical Enrichment
+
+Use the existing analytics worker or a compatible extension to process:
+
+- Nexus Graph relationship updates
+- Member Radar
+- Phoenix Provider Detection
+- Provider-level aggregates
+- 30/60/90-day forecast inference
+- Any anomaly inference dependent on refreshed aggregates
+- Additional evidence fusion
+- Final case reconciliation
+- SIU ranking updates
+
+Use configurable micro-batches.
+
+A reasonable initial interval is 15–30 seconds, but the actual interval must be chosen based on measured execution time and worker availability.
+
+### Important performance rule
+
+Do not execute the entire historical `cli analyze` pipeline after each newly inserted claim.
+
+Do not retrain the Isolation Forest or forecasting models after every arrival.
+
+Where possible:
+
+- Process only affected claims.
+- Process only affected providers.
+- Process only affected members.
+- Refresh only changed graph neighborhoods.
+- Reuse trained models.
+- Reuse historical peer statistics when appropriate.
+- Update only affected cases.
+
+If an engine cannot currently process incrementally, create a safe scoped adapter or bounded batch-processing mechanism.
+
+Do not silently omit that engine.
+
+If full-dataset reconciliation is genuinely necessary for a particular stage, execute it through a controlled background job with explicit progress, concurrency protection, and measured cadence.
+
+---
+
+# SECTION 5 — FULL PIPELINE COVERAGE GUARANTEE
+
+This is the most important acceptance criterion.
+
+Every accepted streamed claim must have a traceable record of its analytical coverage.
+
+Track at least:
+
+- Data validation
+- Database persistence
+- Claim Rules
+- SupplyTrace
+- Isolation Forest / ML inference
+- Nexus Graph enrichment
+- Member Radar evaluation
+- Phoenix evaluation
+- 30/60/90-day forecasting coverage
+- Finding persistence
+- Case consolidation
+- SIU priority reconciliation
+
+For each stage, support states equivalent to:
+
+- PENDING
+- RUNNING
+- COMPLETED
+- NOT_APPLICABLE
+- FAILED
+- RETRYING
+
+Use the project's actual naming conventions where suitable.
+
+### Completion semantics
+
+A claim can be marked **Fully Analyzed** only when all applicable required analysis stages have completed successfully and all required findings and case-ranking effects are committed.
+
+Examples:
+
+A claim without itemized supplies:
+
+- SupplyTrace may be NOT_APPLICABLE.
+
+A provider without an eligible Phoenix predecessor:
+
+- Phoenix must still evaluate eligibility, then record COMPLETED with no qualifying match or NOT_APPLICABLE according to the documented contract.
+
+A provider with insufficient history for a forecast:
+
+- The stage must explicitly report insufficient data.
+- It must not invent a valid forecast.
+- Classify the result consistently as a documented terminal no-prediction outcome, not an unexplained success.
+
+A model failure:
+
+- Must be FAILED or RETRYING.
+- Must not appear as COMPLETED or NOT_APPLICABLE.
+
+A normal claim with no suspicious findings:
+
+- May still be Fully Analyzed.
+
+### Analytical dependency management
+
+Model and relationship analyses may operate on provider or member cohorts rather than individual claims.
+
+Therefore, link each incoming claim to its relevant background enrichment run.
+
+Track the dataset version, snapshot boundary, or processing watermark covered by that run.
+
+Do not mark a claim complete merely because an unrelated older analysis job finished.
+
+When a micro-batch completes, reconcile its actual covered claim IDs or snapshot watermark before advancing stage statuses.
+
+### Investigator-only features
+
+Next-Best-Evidence, Groq, member confirmation, and human review are not mandatory per-claim automatic detection stages.
+
+They are downstream investigator workflows.
+
+Do not call Groq automatically for each claim.
+
+Do not generate simulated member confirmations automatically for every claim.
+
+Do not auto-resolve findings.
+
+After new findings or queue changes, Next-Best-Evidence must read the updated state when requested.
+
+---
+
+# SECTION 6 — SYNTHETIC CLAIM STREAM GENERATOR
+
+Implement a backend-controlled synthetic generator.
+
+### Initial defaults
+
+- One claim per second.
+- 60 claims per default session.
+- Configurable arrival rate.
+- Configurable maximum claim count.
+- Configurable deterministic seed.
+- Configurable scenario mode.
+- Maximum one active generator by default.
+- No automatic generation at application startup.
+
+Ensure configuration remains simple enough for a live hackathon demonstration.
+
+### Each claim must contain valid data
+
+Generate fields compatible with existing schemas.
+
+Include appropriate supporting data such as:
+
+- Claim ID
+- Member ID
+- Provider ID
+- Facility ID where applicable
+- Service date
+- Claim amount
+- Procedure or service code
+- Claim lines
+- Supply records where applicable
+- Encounter/reference records where applicable
+- Required status fields
+- Synthetic source metadata
+
+Do not bypass database validations.
+
+Use transaction-safe insertion.
+
+### Required stream metadata
+
+Persist enough metadata to identify:
+
+- Stream session
+- Claim ID
+- Sequence number
+- Synthetic scenario
+- Generation time
+- Ingestion time
+- Service date
+- Analysis status
+- Current pipeline stage
+- Related finding IDs
+- Related case IDs
+- Processing errors
+
+### Date handling
+
+Do not confuse:
+
+**Service date:** when the synthetic healthcare service occurred.
+
+**Ingestion timestamp:** when ClaimShield received it.
+
+The synthetic stream may replay services from the existing dataset timeline.
+
+Do not force all stream service dates to the computer's current date if that breaks existing lookback periods or creates misleading forecasts.
+
+Do not leak future information into historical analyses.
+
+---
+
+# SECTION 7 — CONTROLLED DEMO SCENARIOS
+
+The live stream must contain a mix of ordinary and intentionally suspicious synthetic records.
+
+All actual detections must come from the existing engines.
+
+Do not hardcode frontend findings or fabricated priority changes.
+
+Implement deterministic scenarios.
+
+## Scenario A — Normal claim
+
+Generate valid claims that usually pass screening.
+
+Expected demonstration:
+
+- New claim arrives.
+- Validation passes.
+- Database record appears.
+- Relevant engines complete.
+- No suspicious finding if none qualifies.
+
+## Scenario B — Duplicate billing
+
+Generate a claim satisfying the existing duplicate-detection rules.
+
+Expected demonstration:
+
+- New claim arrives.
+- Rules engine identifies the applicable potential duplicate.
+- Finding links to the relevant source claim pair.
+- A case is created or updated.
+- The finding appears in the UI.
+
+## Scenario C — SupplyTrace anomaly
+
+Generate a claim with valid itemized consumables and an unusually high quantity according to the actual existing detection rule.
+
+Expected demonstration:
+
+- SupplyTrace evaluates the claim.
+- Peer comparison is computed.
+- A source-linked supply anomaly appears.
+- Investigator can open the SupplyTrace detail page.
+
+## Scenario D — Timing or utilization anomaly
+
+Generate a claim that genuinely satisfies an implemented timing, refill, or utilization rule.
+
+Expected demonstration:
+
+- A rule finding is created.
+- Relevant claims are linked.
+- Case priority is updated where appropriate.
+
+## Scenario E — Provider-level enrichment
+
+Include a controlled provider/member scenario that can demonstrate periodic graph or Member Radar updates.
+
+If historical context is required, seed a separate valid synthetic cohort before starting the stream.
+
+Do not expect one claim to create a Phoenix relationship without provider-status and relationship information.
+
+### Scenario design rules
+
+- Mostly ordinary claims.
+- Some detector-positive claims.
+- Deterministic order and random seed.
+- No fake findings.
+- No forced SIU scores.
+- No silent ground-truth leakage.
+- Source records must be inspectable.
+
+Prefer a separate streaming-demo provider cohort so the existing P0252/P0258 hero cases remain understandable.
+
+---
+
+# SECTION 8 — STREAM SESSION LIFECYCLE
+
+Implement durable stream-session management.
+
+Statuses should include equivalents of:
+
+- IDLE
+- STARTING
+- RUNNING
+- STOPPING
+- DRAINING
+- COMPLETED
+- FAILED
+- STOPPED
+
+Each session should store:
+
+- Unique ID
+- Configuration
+- Random seed
+- Created time
+- Start time
+- Stop time
+- Current state
+- Intended claim count
+- Generated claim count
+- Accepted claim count
+- Analyzed claim count
+- Fully analyzed claim count
+- Failed claim count
+- Pending tasks
+- Last event
+- Error details
+
+## Start behavior
+
+Clicking Start must:
+
+1. Validate configuration.
+2. Check for another active stream.
+3. Create a durable session.
+4. Schedule generation through an appropriate server-side process.
+5. Return the new session ID.
+6. Begin emitting real processing events.
+
+Start must be idempotent or reject duplicate requests safely.
+
+Double-clicking Start must not launch two competing generators.
+
+## Stop behavior
+
+Clicking Stop must:
+
+1. Stop accepting newly generated claims.
+2. Preserve claims already accepted.
+3. Allow pending processing to finish or fail explicitly.
+4. Finish applicable background enrichment.
+5. Update final session status.
+6. Report actual final counts.
+
+Do not abandon accepted claims silently.
+
+## Worker restart handling
+
+A backend restart must not duplicate claims or accidentally create multiple generators.
+
+Do not rely exclusively on an in-memory Python variable for coordination.
+
+Use existing persisted job state, locking, ownership leases, or PostgreSQL-supported coordination as appropriate.
+
+Ensure a generator does not monopolize the existing analytics worker and prevent analysis jobs from running.
+
+---
+
+# SECTION 9 — DATABASE PERSISTENCE
+
+Use backward-compatible database migrations.
+
+Prefer extending existing models and services rather than duplicating their responsibilities.
+
+Potential additional persistence requirements include:
+
+### Stream sessions
+
+Session configuration, ownership, status and counters.
+
+### Stream claim associations
+
+Session ID, claim ID, sequence number, ingestion timestamp and scenario type.
+
+### Claim processing stages
+
+Claim ID, stage name, status, attempt count, started/completed timestamps, error and processing version.
+
+### Stream events
+
+Ordered events for ingestion, analysis, findings, case changes and failures.
+
+Use the existing event or audit infrastructure where appropriate.
+
+Do not confuse system-processing events with human investigation audit events.
+
+### Idempotency
+
+Use stable unique identifiers for:
+
+- Stream sessions
+- Stream claim sequences
+- Claims
+- Processing attempts
+- Findings
+- Analysis versions
+
+Repeated delivery or retry must not create duplicate claims or duplicate findings.
+
+### Transaction boundaries
+
+Never publish a successful processing event before the relevant database transaction commits.
+
+Use a persisted event/outbox approach or another reliable mechanism aligned with the existing infrastructure.
+
+If a transaction fails, the UI must not permanently display an event claiming successful persistence.
+
+### Preserve human review
+
+A later analysis pass must not silently overwrite findings previously explained or escalated by an investigator.
+
+Retain historical evidence and audit history.
+
+Where new evidence reopens a concern, use the established review and case-state policies.
+
+---
+
+# SECTION 10 — INCREMENTAL DETECTION AND ANALYTICAL ENRICHMENT
+
+## 10.1 Claim Rules
+
+Reuse the actual rules from `services/detection.py`.
+
+Support evaluation of:
+
+- The newly accepted claim
+- Relevant previously stored claims
+- Applicable reference and policy data
+
+Do not evaluate the new claim in isolation when a rule requires comparing it with historical records.
+
+Return normal source-linked finding objects.
+
+## 10.2 SupplyTrace
+
+For streamed claims with itemized supplies:
+
+- Evaluate quantities and prices.
+- Use applicable peer-group information.
+- Check estimate-to-final behavior if required records exist.
+- Persist findings through the current evidence pipeline.
+
+Avoid rebuilding every peer statistic on every arrival.
+
+Reuse cached baseline statistics where valid, and refresh aggregates when necessary.
+
+If peers are insufficient, report that limitation.
+
+## 10.3 Isolation Forest
+
+Load the existing trained model and its preprocessing artifacts.
+
+Use inference rather than retraining.
+
+Ensure the features have the same meaning, ordering and normalization as training.
+
+If the provider aggregates require refresh, schedule that refresh.
+
+Do not fabricate an anomaly score when features are missing.
+
+## 10.4 30/60/90-Day Forecasting
+
+Use the existing trained models.
+
+Recalculate predictions only when relevant provider features have been updated.
+
+Avoid retraining on every micro-batch.
+
+Respect time-window boundaries and chronological feature construction.
+
+Report if the provider lacks adequate history.
+
+## 10.5 Nexus Network
+
+Update affected relationships when new source records arrive.
+
+Prefer scoped graph updates.
+
+Do not rebuild the entire graph for each claim unless measured performance justifies it.
+
+Preserve the distinction between documented relationships and inferred possible-successor links.
+
+## 10.6 Member Radar
+
+Refresh the relevant provider/member analytical windows.
+
+Check:
+
+- Newly billed members
+- Historical acquisition baseline
+- Prior relationships
+- Care-history context
+- Geographic signals where valid
+- Other configured member-risk indicators
+
+Re-evaluate affected cohorts.
+
+Ensure a valid batch finding is generated only when the real detector requirements are met.
+
+Do not hardcode a Member Radar finding merely because the stream is active.
+
+## 10.7 Phoenix Provider Detector
+
+Re-evaluate eligible predecessor/successor relationships when relevant data changes.
+
+Examples:
+
+- Provider enrollment/status update
+- Patient-panel changes
+- Billing-fingerprint changes
+- Referral changes
+
+Avoid comparing every provider pair for every new claim.
+
+Preserve the actual similarity scoring and thresholds.
+
+Do not automatically transfer predecessor allegations to a possible successor.
+
+## 10.8 Findings and Case Consolidation
+
+New findings must use the existing schemas and source-evidence system.
+
+For each affected entity:
+
+- Reconcile findings.
+- Preserve historical finding IDs where appropriate.
+- Avoid duplicate findings.
+- Associate relevant claims.
+- Consolidate into correct cases.
+- Preserve resolved findings and review history.
+- Recalculate unique-claim financial exposure.
+- Update SIU priority.
+
+Do not create one new case for every routine stream claim.
+
+## 10.9 Smart SIU and Next-Best-Evidence
+
+After a committed case change:
+
+- Recalculate the affected case's priority using the existing scoring implementation.
+- Refresh the ranked queue.
+- Make the new case state available to Next-Best-Evidence.
+- Invalidate relevant frontend queries.
+- Publish a case-updated event.
+
+Do not create a second SIU scoring formula.
+
+Next-Best-Evidence should be recomputed on request against the current committed case and queue state.
+
+## 10.10 Groq
+
+Keep Groq on demand.
+
+Do not send every arriving claim to Groq.
+
+Do not let an LLM determine whether a claim is fraudulent or independently change an investigation.
+
+Existing investigation briefs, challengers and deterministic fallbacks must continue working.
+
+---
+
+# SECTION 11 — LIVE FRONTEND EXPERIENCE
+
+The feature must appear on the existing Overview screen.
+
+Do not replace the current dashboard.
+
+Add a visually polished but compact section titled:
+
+**Live Claims Monitor**
+
+Subtitle:
+
+"Watch synthetic healthcare claims move through ClaimShield Nexus in real time."
+
+## 11.1 Required controls
+
+- Start Live Simulation
+- Stop Simulation
+- Reset display or select a new session, without destructively deleting claims
+- Stream rate selector if feasible
+- Claim-count or duration selector if feasible
+- Scenario mode indicator
+
+The controls must call real backend endpoints.
+
+## 11.2 Required live metrics
+
+Display:
+
+- Stream status
+- Claims generated
+- Claims accepted
+- Claims analyzed
+- Claims fully analyzed
+- Pending analysis
+- Failed analysis
+- New findings generated
+- Cases created
+- Cases updated
+- Current processing rate
+- Latest completed analysis time
+
+Do not conflate generated, accepted, analyzed and fully analyzed claims.
+
+Display metrics from server-side session state.
+
+## 11.3 Live event feed
+
+Show recent events with timestamps.
+
+Example event categories:
+
+- Claim generated
+- Claim validated
+- Claim persisted
+- Claim analysis started
+- Claim Rules complete
+- SupplyTrace complete
+- ML inference complete
+- Background enrichment scheduled
+- Background enrichment complete
+- Finding created
+- Existing case updated
+- New case created
+- SIU priority recalculated
+- Claim fully analyzed
+- Processing failed
+
+Each event must correspond to an actual backend action.
+
+No artificial frontend event generation.
+
+The feed should be bounded, searchable or scrollable, and not degrade performance over long sessions.
+
+## 11.4 Clickable events
+
+Clicking a claim event should open the real Claim Detail page.
+
+Clicking a finding event should navigate to the relevant claim or case context.
+
+Clicking a case event should open the real Case Workspace.
+
+Clicking a provider-analysis event should navigate to the applicable Member Radar, Phoenix graph or Future Risk screen.
+
+Use existing frontend routing.
+
+## 11.5 Per-claim pipeline inspector
+
+Add a selectable claim detail panel within Live Claims Monitor.
+
+For a selected claim, display actual stage status:
+
+- Validation
+- Persistence
+- Claim Rules
+- SupplyTrace
+- Isolation Forest
+- Nexus Graph
+- Member Radar
+- Phoenix
+- Forecast inference
+- Evidence fusion
+- Case consolidation
+- SIU ranking
+
+Each stage must show:
+
+- Status
+- Completion timestamp where available
+- Findings count where relevant
+- Error information where applicable
+- Not Applicable reason where applicable
+
+Only display **Fully Analyzed** after the backend reports complete applicable coverage.
+
+## 11.6 Dashboard updates
+
+The following existing pages should reflect new committed records without requiring a manual browser reload:
+
+- Overview claim count
+- Claims Explorer
+- Relevant Claim Detail views
+- SupplyTrace, where applicable
+- Relevant graph data
+- Member Radar, after applicable enrichment
+- Future Risk, after applicable inference
+- SIU Queue
+- Affected Case Workspace
+- Next-Best-Evidence recommendations when requested again
+
+Do not reload the entire React application every second.
+
+Use targeted cache invalidation or controlled data refetching.
+
+---
+
+# SECTION 12 — REAL-TIME COMMUNICATION
+
+Choose the simplest reliable approach compatible with the current application.
+
+### Preferred option: Server-Sent Events
+
+Use SSE for server-to-browser event delivery if appropriate.
+
+Potential API operations, with routes adapted to the current `/api/v1` conventions:
+
+- Start stream
+- Stop stream
+- Get session status
+- Get session claims
+- Get per-claim processing status
+- Get recent events
+- Subscribe to the event stream
+
+SSE requirements:
+
+- Events originate from durable committed state.
+- Include stable event IDs.
+- Support reconnecting.
+- Support resuming from an event ID or fetching missed events.
+- Do not duplicate events in the frontend after reconnect.
+- Provide bounded history.
+- Do not hold long database transactions while streaming.
+
+### Acceptable alternative: Controlled polling
+
+If SSE would create unnecessary integration risk, implement reliable polling every 1–3 seconds.
+
+Use the existing frontend data-fetching library.
+
+Avoid overlapping requests.
+
+Ensure no stale data overwrites newer results.
+
+Do not introduce WebSockets simply for architectural complexity.
+
+The finished UI must update automatically either way.
+
+---
+
+# SECTION 13 — API INTEGRATION
+
+Inspect the current route structure and implement appropriately namespaced endpoints.
+
+Illustrative operations:
+
+**POST — Start simulation**
+
+Creates or safely reuses a session.
+
+**POST — Stop simulation**
+
+Stops new generation and begins draining.
+
+**GET — Simulation status**
+
+Returns durable state and counters.
+
+**GET — Simulation events**
+
+Returns ordered recent events.
+
+**GET — Session claims**
+
+Returns claims generated by the session.
+
+**GET — Claim processing coverage**
+
+Returns per-stage statuses.
+
+**GET — Simulation summary**
+
+Returns new findings, affected cases, performance and completion data.
+
+**GET — Live event subscription**
+
+Optional SSE endpoint.
+
+The paths above are conceptual.
+
+Use the existing API conventions, authentication/authorization structure, dependencies, Pydantic schemas and error-handling style.
+
+Prevent unauthorized requests from starting resource-consuming background streams when existing authentication supports permission checks.
+
+Return meaningful status codes.
+
+Do not create duplicate route handlers.
+
+---
+
+# SECTION 14 — PERFORMANCE AND BOTTLENECK CONTROL
+
+Treat this as an engineering feature, not an animation.
+
+## 14.1 Avoid full analysis per claim
+
+Never automatically run the full historical analysis command for every inserted record.
+
+## 14.2 Avoid ML retraining
+
+Reuse existing trained models.
+
+Separate inference from model training.
+
+## 14.3 Avoid frontend over-rendering
+
+Use targeted updates.
+
+Limit retained feed events in memory.
+
+Do not re-render huge Cytoscape networks for every claim.
+
+## 14.4 Avoid database overload
+
+Use indexes, bounded queries and appropriate transactions.
+
+Do not create one unnecessary full-table scan for every streamed claim.
+
+## 14.5 Control backlog
+
+Track:
+
+- Arrival rate
+- Processing throughput
+- Queue depth
+- Oldest pending claim age
+- Micro-batch duration
+- Processing errors
+
+Implement reasonable backpressure.
+
+If accepted claims accumulate faster than processing can complete:
+
+- Preserve them durably.
+- Slow or pause generation where necessary.
+- Show the backlog in the UI.
+- Do not silently discard claims.
+- Allow the session to drain.
+
+## 14.6 Prevent worker starvation
+
+The generator must not monopolize the only worker while analysis jobs wait.
+
+Use short scheduled generation tasks, a dedicated lightweight runner, or the existing concurrency mechanism as appropriate.
+
+## 14.7 Graceful failure
+
+One malformed claim or failed analysis stage must not crash the entire stream.
+
+Record the failure and permit a controlled retry.
+
+Do not mark failed claims Fully Analyzed.
+
+---
+
+# SECTION 15 — DEMO ISOLATION AND REPLAY
+
+The live feature must be safe to demonstrate multiple times.
+
+Create a deterministic stream scenario pack.
+
+Use:
+
+- Fixed seed
+- Versioned scenario definitions
+- Stable scenario identifiers
+- Session-specific claim IDs
+- Reproducible generation order
+
+Prefer a separate synthetic provider/member cohort for new stream findings.
+
+Do not modify the original P0252/P0258 scenario source records just to make the live demonstration interesting.
+
+### Replaying
+
+Provide a way to start a fresh stream session with the same scenario seed.
+
+Repeated sessions must not cause primary-key conflicts.
+
+They must not duplicate previous sessions' claims under identical IDs.
+
+If replaying into a database already containing previous stream claims changes historical comparisons, either use a controlled isolated demo dataset or document and handle that influence.
+
+Avoid deleting historical investigation records as a shortcut.
+
+### Demo preparation
+
+Document:
+
+- How to start the application.
+- How to prepare the streaming scenario.
+- How to launch the stream.
+- Which event should appear.
+- Which claim/case to click.
+- How to stop.
+- How to verify all accepted claims finished processing.
+- How to run another safe demonstration.
+
+---
+
+# SECTION 16 — REQUIRED END-TO-END DEMONSTRATION
+
+Implement and verify a genuine 60–90-second demo flow.
+
+### Stage 1 — Initial dashboard
+
+Overview shows the existing analyzed synthetic dataset.
+
+The Live Claims Monitor is stopped.
+
+No new stream claims are displayed yet.
+
+### Stage 2 — Start streaming
+
+Click Start Live Simulation.
+
+The server starts generating claims approximately once per second.
+
+The live counters increase using committed backend results.
+
+### Stage 3 — Normal claim
+
+An ordinary synthetic claim appears.
+
+Click it and open the stored Claim Detail page.
+
+Show that screening completed without inventing a finding.
+
+### Stage 4 — Duplicate concern
+
+A deliberately constructed duplicate scenario enters.
+
+The actual Claim Rules Engine detects it.
+
+A finding appears with source references.
+
+Click the finding to inspect the claim and case.
+
+### Stage 5 — Supply anomaly
+
+A deliberately constructed supply anomaly enters.
+
+The actual SupplyTrace engine identifies it.
+
+Click the event and inspect the peer comparison.
+
+### Stage 6 — Background enrichment
+
+An applicable micro-batch runs.
+
+The frontend shows its stage progress.
+
+Affected provider/member/graph analysis completes.
+
+A relevant claim eventually reaches Fully Analyzed when all required stages are done.
+
+### Stage 7 — Case and ranking update
+
+At least one legitimate synthetic detection results in an actual persisted case creation or update.
+
+The case appears in the SIU queue.
+
+Display its actual calculated priority.
+
+Do not force the case to rank #1.
+
+### Stage 8 — Next-Best-Evidence
+
+Open the affected case.
+
+Show evidence recommendations computed from its current findings.
+
+If a suitable recommendation exists, simulate an outcome without changing the database.
+
+### Stage 9 — Stop streaming
+
+Click Stop.
+
+No additional claims should be generated after stopping is acknowledged.
+
+Already accepted claims continue processing.
+
+Wait for the final reconciliation.
+
+Show the completed/failed stage counts.
+
+### Stage 10 — Continue the original investigation demo
+
+After stopping the stream, show:
+
+- Member Radar P0252
+- Phoenix P0251 → P0252
+- Consolidated case
+- Next-Best-Evidence
+- Member confirmations
+- Spillover
+- Human review
+- Legitimate acquisition safeguard
+
+All existing features must remain functional.
+
+---
+
+# SECTION 17 — AUTOMATED TESTS
+
+Implement meaningful backend and frontend tests.
+
+## 17.1 Generator tests
+
+Test:
+
+- Valid synthetic claims.
+- Foreign-key relationships.
+- Claim lines and supplies.
+- Unique identifiers.
+- Deterministic generation.
+- Normal scenario.
+- Duplicate scenario.
+- Supply anomaly scenario.
+- Invalid configuration.
+- Maximum claim count.
+
+## 17.2 Session tests
+
+Test:
+
+- Start.
+- Stop.
+- Duplicate Start.
+- Double-click behavior.
+- Stop during processing.
+- Draining.
+- Completion.
+- Session restart.
+- Worker interruption.
+- Duplicate job delivery.
+- Idempotent retries.
+
+## 17.3 Processing tests
+
+Test:
+
+- Claim persistence.
+- Rule execution.
+- SupplyTrace execution.
+- ML inference where applicable.
+- Not Applicable stages.
+- Insufficient-history handling.
+- Micro-batch enrollment.
+- Stage completion.
+- Stage failure.
+- Retry.
+- Source-linked findings.
+- Case consolidation.
+- SIU priority update.
+- Full analytical coverage.
+
+Critically, assert that Fully Analyzed is never reported while an applicable stage remains pending or failed.
+
+## 17.4 Case integrity tests
+
+Test:
+
+- No duplicate findings on retries.
+- No duplicated financial exposure.
+- Existing case IDs preserved.
+- Existing investigator reviews preserved.
+- Audit events retained.
+- New source evidence linked correctly.
+- SIU priorities computed by the existing scorer.
+- Next-Best-Evidence sees the updated case.
+
+## 17.5 Event delivery tests
+
+Test:
+
+- Events follow committed state.
+- Ordered event IDs.
+- Reconnection.
+- Duplicate event suppression.
+- Polling fallback if provided.
+- No false successful-processing events.
+- No stale status overwrites.
+
+## 17.6 Frontend tests
+
+Test:
+
+- Start button calls the backend.
+- Stop button calls the backend.
+- Status counters update.
+- Claim feed displays genuine API events.
+- Claim links navigate correctly.
+- Case links navigate correctly.
+- Processing-status inspector works.
+- Pending stages display correctly.
+- Errors are visible.
+- Stream completion is displayed.
+- Existing dashboard components remain functional.
+
+## 17.7 End-to-end test
+
+Build an isolated test that:
+
+1. Starts a stream.
+2. Generates valid claims.
+3. Persists them.
+4. Runs immediate screening.
+5. Executes applicable enrichment.
+6. Creates genuine findings.
+7. Updates cases.
+8. Recalculates SIU rankings.
+9. Reaches final analytical stage status.
+10. Stops and drains successfully.
+
+Verify that the entire flow works using persisted data.
+
+---
+
+# SECTION 18 — ACTUAL PERFORMANCE VERIFICATION
+
+Run a real measurement against the local Docker environment.
+
+Use at least one controlled session of approximately 60 claims at one claim per second, if the environment supports it.
+
+Record:
+
+- Generated claims
+- Accepted claims
+- Fully analyzed claims
+- Failed claims
+- Findings created
+- Cases created/updated
+- Mean and p95 ingestion latency
+- Mean and p95 end-to-end analysis latency
+- Maximum processing backlog
+- Micro-batch duration
+- Worker errors
+- Frontend update behavior
+
+Do not fabricate numbers.
+
+If the actual analysis cannot keep up with the arrival rate, identify the bottleneck and improve it or reduce the default rate.
+
+The objective is reliable demonstration, not inflated performance claims.
+
+Use the results to choose the final micro-batch interval and default stream configuration.
+
+---
+
+# SECTION 19 — REQUIRED FILES AND DOCUMENTATION
+
+Create or update appropriate project documentation.
+
+Suggested deliverables:
+
+### `docs/LIVE_CLAIMS_MONITORING.md`
+
+Explain:
+
+- Architecture
+- Session lifecycle
+- Generator design
+- Immediate processing
+- Background enrichment
+- Full coverage semantics
+- Database changes
+- API routes
+- Frontend event delivery
+- Backpressure
+- Failure recovery
+- Performance results
+- Limitations
+
+### `docs/LIVE_STREAM_DEMO.md`
+
+Provide a reproducible judge-facing walkthrough.
+
+Include:
+
+- Exact startup commands
+- Real routes
+- Buttons to click
+- Example events
+- Scenario IDs
+- Expected results
+- How to stop and drain
+- How to replay
+
+### README
+
+Add a concise description of Live Claims Monitoring with a link to the detailed documentation.
+
+### `.env.example`
+
+Add any necessary stream configuration using safe defaults.
+
+Do not include secrets.
+
+Avoid unnecessary new environment variables if existing configuration already covers the requirement.
+
+---
+
+# SECTION 20 — NON-NEGOTIABLE SAFETY AND QUALITY RULES
+
+1. Do not rebuild ClaimShield Nexus.
+2. Do not replace its PostgreSQL database.
+3. Do not delete Docker volumes.
+4. Do not replace existing analysis engines.
+5. Do not rerun full model training per claim.
+6. Do not hardcode simulated findings in React.
+7. Do not fabricate claim-processing events.
+8. Do not mark pending claims Fully Analyzed.
+9. Do not treat unavailable engines as successfully executed.
+10. Do not treat a high anomaly score as proven fraud.
+11. Do not automatically contact real members.
+12. Do not automatically invoke Groq for every claim.
+13. Do not automatically resolve or accuse a provider.
+14. Do not overwrite investigator decisions.
+15. Do not double-count claim exposure.
+16. Do not allow unbounded streams without limits.
+17. Do not create competing generators through repeated Start calls.
+18. Do not silently lose claims on restart.
+19. Do not invent test results or latency statistics.
+20. Do not commit `.env`, API keys, or secrets.
+21. Do not push to GitHub or deploy automatically.
+22. Do not make destructive database changes without permission.
+
+All data must remain synthetic and clearly labeled.
+
+---
+
+# SECTION 21 — COMPLETION CHECKLIST
+
+The feature is complete only when all the following are verified.
+
+## Backend
+
+- [ ] Backend-controlled synthetic generator implemented.
+- [ ] One-claim-per-second mode functions.
+- [ ] Stream session state is persistent.
+- [ ] Start/Stop API works.
+- [ ] Double-start protection works.
+- [ ] Generated claims persist in PostgreSQL.
+- [ ] Claim relationships remain valid.
+- [ ] Immediate screening works.
+- [ ] Background enrichment works.
+- [ ] Existing models are reused.
+- [ ] All applicable analytical stages are tracked.
+- [ ] Fully Analyzed semantics are correct.
+- [ ] Findings use the existing evidence system.
+- [ ] Case consolidation works.
+- [ ] SIU ranking updates.
+- [ ] Historical investigator reviews are preserved.
+- [ ] Failures and retries are safe.
+- [ ] Stream stops and drains correctly.
+
+## Frontend
+
+- [ ] Live Claims Monitor appears on Overview.
+- [ ] Start button works.
+- [ ] Stop button works.
+- [ ] Live metrics update automatically.
+- [ ] Event feed displays actual backend events.
+- [ ] Claim events are clickable.
+- [ ] Finding/case events are clickable.
+- [ ] Per-claim pipeline statuses are visible.
+- [ ] Error and pending states work.
+- [ ] Existing dashboard features still work.
+- [ ] SIU Queue reflects committed case changes.
+- [ ] Existing Case Workspace still works.
+- [ ] Member Radar and Phoenix still work.
+- [ ] Next-Best-Evidence still works.
+
+## Verification
+
+- [ ] Backend tests pass.
+- [ ] Frontend tests pass.
+- [ ] Production frontend build passes.
+- [ ] Docker services start.
+- [ ] Database migration succeeds.
+- [ ] Streamed duplicate scenario is detected.
+- [ ] Streamed supply anomaly is detected.
+- [ ] Actual case updates are observed.
+- [ ] Full applicable analysis coverage is verified.
+- [ ] No duplicate findings occur.
+- [ ] No existing review history is lost.
+- [ ] Performance is measured.
+- [ ] Demo walkthrough is reproducible.
+- [ ] Documentation is complete.
+
+---
+
+# SECTION 22 — REQUIRED FINAL RESPONSE FROM CODEX
+
+After implementation, provide a detailed final report containing:
+
+## A. Architecture
+
+Explain exactly how a new streamed claim moves through the implemented pipeline.
+
+Separate immediate stages from background stages.
+
+## B. Files changed
+
+List newly added and modified files.
+
+Explain the purpose of each major change.
+
+## C. API routes
+
+List actual routes, methods, and request/response behavior.
+
+Do not report proposed routes as implemented routes.
+
+## D. Database changes
+
+List migrations and persistence structures.
+
+Explain how original data and human reviews are protected.
+
+## E. Engine integration
+
+For every analytical engine, state:
+
+- How it receives streamed data.
+- Whether it processes immediately or in micro-batches.
+- How its completion is tracked.
+- Whether its output can update findings or cases.
+- How failures are handled.
+
+## F. Frontend
+
+Explain every new dashboard component and button.
+
+Include where events navigate.
+
+## G. Test results
+
+Provide actual:
+
+- Backend test count and failures.
+- Frontend test count and failures.
+- Integration results.
+- Build results.
+- Docker health results.
+- Database migration results.
+
+## H. Measured performance
+
+Report actual stream throughput, processing latency, backlog, failures, and completion time.
+
+## I. Demo script
+
+Provide exact steps to reproduce a full demo using real seeded IDs and real UI controls.
+
+## J. Limitations
+
+Identify any engines that cannot yet process incrementally.
+
+Explicitly state if any stage relies on full-batch reconciliation.
+
+Identify performance bottlenecks.
+
+## K. Git status
+
+Report current branch and changed files.
+
+Do not automatically commit or push.
+
+## L. Completion status
+
+Classify each requirement as:
+
+- COMPLETE AND VERIFIED
+- IMPLEMENTED BUT UNVERIFIED
+- PARTIAL
+- BLOCKED
+- FAILED
+
+Do not declare success merely because the Start button works.
+
+---
+
+# FINAL IMPLEMENTATION DIRECTIVE
+
+Build a genuine, reliable Live Claims Monitoring system on top of the current ClaimShield Nexus application.
+
+The judge must be able to watch a synthetic claim arrive, open the actual persisted record, see real analytical processing occur, inspect any resulting findings, and navigate to an updated investigation case.
+
+Every accepted claim must eventually receive coverage from all applicable analytical engines.
+
+Use immediate lightweight processing and background micro-batching to achieve this efficiently.
+
+The existing Member Radar, Phoenix, Nexus Graph, Smart SIU Queue, Next-Best-Evidence, Groq, Case Workspace and audit trail must continue functioning.
+
+Preserve the existing scenario pack and human-reviewed evidence.
+
+Prioritize correctness, reproducibility, and demo stability over unnecessary architectural complexity.
+
+Do not stop at a partial implementation or visual prototype.
+
+**BEGIN NOW: audit the existing repository, identify the necessary integration points, implement the complete feature, run the tests, verify a real streaming session, and report exactly what works.**

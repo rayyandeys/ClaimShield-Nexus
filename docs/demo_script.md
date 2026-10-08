@@ -16,9 +16,11 @@ Open http://localhost:5173. Expected: 21,151 claims, 1,599 findings, 898 cases; 
 
 > The walkthrough below changes the demo database (notices, reviewed responses, one resolved Phoenix finding). Stage 5 can be repeated with any of the remaining eligible claims; stage 8 needs a fresh database to repeat exactly.
 
+> Live streaming demo (optional, before stage 1): [LIVE_STREAM_DEMO.md](LIVE_STREAM_DEMO.md). Stream sessions add their own cohort records only; none of the IDs below change.
+
 ## Stage 1 — Member Radar
 
-1. Sidebar → **Member radar**. Row **P0252 · Synthetic Provider 252 · DME Supplier**: *Flagged*, 270 new members, 8.6× growth, 97% without prior relationship, 0% prior care context, dispersion percentile 43%.
+1. Sidebar → **Member radar** (after live-stream sessions, their cohort batches `PS000kC` sort first; type `P0252` in the search box). Row **P0252 · Synthetic Provider 252 · DME Supplier**: *Flagged*, 270 new members, 8.6× growth, 97% without prior relationship, 0% prior care context, dispersion percentile 43%.
 2. Click the row (→ `/radar/P0252`). Threshold checks: four required checks *Passed*; geographic dispersion *Corroborating · Not met*, with the documented reason (care location in the base data is independent of residence). Historical rate 31.3 per 90 days (32 new members over 92 active baseline days). The acquisition chart spikes in Aug–Sep 2026.
 3. Provider–member network: green = billed before the window, orange = new with no prior relationship. Click a member (e.g. M002165): the five signals with values, robust z and coverage (D missing-encounter rate 1.00, C geographic jump ≈ 2,675 km).
 - **Conclusion:** a burst of previously unrelated members that needs member confirmation. **Uncertain:** whether any identity was actually misused; diagnoses are unavailable.

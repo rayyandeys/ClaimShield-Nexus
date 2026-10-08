@@ -70,6 +70,12 @@ docker compose exec backend python -m app.cli analyze
 
 Details, thresholds and limits: [investigation extensions](docs/investigation_extensions.md).
 
+## Live Claims Monitoring
+
+**Overview → Live Claims Monitor → Start Live Simulation** streams synthetic claims (default 60 at one per second) through the real pipeline. Each claim is validated and committed to PostgreSQL. It is then screened immediately by Claim Rules and SupplyTrace, and enriched in background micro-batches on the existing worker: Isolation Forest and forecast inference with the stored models, Nexus graph, Member Radar and Phoenix, scoped to the affected providers and members. Findings, cases and SIU priorities come from the existing engines and scorer. A per-claim inspector shows all 12 stages, and a claim is *Fully analyzed* only when every stage is terminal. Every feed event is a committed database event, and clicking one opens the claim, case or provider view.
+
+The runner is the `stream` compose service (started by `docker compose up -d`; idle until a session starts). Each session uses its own synthetic provider cohort, so replays never touch the original scenario records. Details: [live claims monitoring](docs/LIVE_CLAIMS_MONITORING.md) · demo walkthrough: [live stream demo](docs/LIVE_STREAM_DEMO.md).
+
 ## Architecture and stack
 
 ```mermaid
@@ -180,6 +186,8 @@ docker compose run --rm backend pytest -q -m "not integration"
 docker compose exec frontend npm test
 # Read-only live API smoke test
 docker compose exec backend python -m app.smoke
+# Measured live-stream session (writes: starts a real 60-claim session)
+docker compose exec backend python -m app.stream_measure --claims 60 --rate 1
 ```
 
 ## Troubleshooting
@@ -190,6 +198,7 @@ docker compose exec backend python -m app.smoke
 - Rejected import: inspect **Data ingestion → Validation issues** and `artifacts/evaluation/latest_audit.json`. Original input remains unchanged; conflicting source IDs require a separately versioned dataset rather than overwriting evidence.
 - Worker failure: inspect `docker compose logs --tail 100 worker`. Expired running jobs can be reclaimed after their 90-second lease. Three attempts is the upper bound; validation errors fail immediately.
 - Unavailable forecasts: inspect the model card. Every split needs both classes and a minimum sample count; no synthetic probabilities are substituted.
+- Live Claims Monitor cannot start: *Stream runner offline* means the `stream` service is not running (`docker compose up -d stream`; logs: `docker compose logs --tail 100 stream`). A 409 means another session is still active or draining. Claims waiting for background enrichment need the `worker` service.
 - Groq unavailable: the console displays a deterministic report and the reason category. Live Groq generation requires a valid configured key and provider access.
 
 ## Known prototype boundaries
