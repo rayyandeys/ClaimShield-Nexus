@@ -1,0 +1,20 @@
+import {describe,it,expect,vi,afterEach} from 'vitest';
+import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
+import {QueryClient,QueryClientProvider} from '@tanstack/react-query';
+import {MemoryRouter} from 'react-router-dom';
+import App from './App';
+vi.mock('echarts',()=>({init:()=>({setOption:vi.fn(),resize:vi.fn(),dispose:vi.fn()})}));
+vi.mock('cytoscape',()=>({default:()=>({on:vi.fn(),resize:vi.fn(),destroy:vi.fn(),fit:vi.fn(),zoom:vi.fn(()=>1)})}));
+globalThis.ResizeObserver=class{observe(){}disconnect(){}unobserve(){}};
+const caseRow={case_id:'CASE-TEST',title:'P0001 · synthetic supply review',primary_entity:'P0001',case_status:'NEW',severity:'HIGH',priority_score:68.4,potential_financial_exposure:500,payment_workflow:'POSTPAYMENT',assigned_investigator:null};
+const claim={claim_id:'C0000001',provider_id:'P0001',service_date:'2026-01-01',primary_code:'SIM-SURGERY',claim_status:'paid',billed_amount_usd:1000,allowed_amount_usd:800,paid_amount_usd:600};
+function setup(path:string,resolver?:(url:string)=>any){const calls:string[]=[];vi.stubGlobal('fetch',vi.fn(async(url:string)=>{calls.push(url);const data=resolver?.(url)??(url.includes('/dataset/summary')?{counts:{claims:20000,providers:250,facilities:60},claims_processed:20000,active_findings:12,active_cases:4,potential_exposure:500,date_range:['2024-10-01','2026-09-30'],trend:[],priority_distribution:[]}:url.includes('/models/status')?{items:[],groq:{configured:false}}:url.includes('/siu/queue')?{items:[caseRow],total:1}:url.includes('/network/')?{nodes:[{data:{id:'P0001',label:'Provider',type:'provider'}}],edges:[],cases:[]}:url.includes('/cases/CASE-TEST')?{...caseRow,summary:'Review synthetic records.',claims:[claim],findings:[],evidence:[],ranking:{factors:{severity:30}},allowed_transitions:['UNDER_REVIEW'],timeline:[]}:url.includes('/claims?')?{items:[{...claim,claim_id:url.includes('page=2')?'C0000002':'C0000001'}],total:50,page:1,page_size:25}:{items:[],total:0});return {ok:true,json:async()=>data};}));const client=new QueryClient({defaultOptions:{queries:{retry:false}}});render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><App/></MemoryRouter></QueryClientProvider>);return calls;}
+afterEach(()=>{cleanup();vi.unstubAllGlobals();});
+describe('Investigator console',()=>{
+ it('renders backend dashboard counts',async()=>{setup('/');expect(await screen.findByText('20,000')).toBeInTheDocument();expect(screen.getByText('A clearer view of every signal.')).toBeInTheDocument();});
+ it('requests the next claims page',async()=>{const calls=setup('/claims');await screen.findByText('C0000001');fireEvent.click(screen.getByRole('button',{name:'Next page'}));await screen.findByText('C0000002');expect(calls.some(c=>c.includes('page=2'))).toBe(true);});
+ it('loads queue and opens real case route',async()=>{setup('/queue');fireEvent.click(await screen.findByText(caseRow.title));expect(await screen.findByText('CASE INVESTIGATION WORKSPACE')).toBeInTheDocument();expect(screen.getByText('Investigator controls')).toBeInTheDocument();});
+ it('displays a network response',async()=>{setup('/network');expect(await screen.findByText(/1 nodes · 0 edges/)).toBeInTheDocument();expect(screen.getByLabelText('Interactive source relationship graph')).toBeInTheDocument();});
+ it('handles empty claims',async()=>{setup('/claims',()=>({items:[],total:0}));expect(await screen.findByText('No records match this view.')).toBeInTheDocument();});
+ it('shows a useful API error',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>({ok:false,json:async()=>({detail:'Database unavailable'})})));const client=new QueryClient({defaultOptions:{queries:{retry:false}}});render(<QueryClientProvider client={client}><MemoryRouter initialEntries={['/claims']}><App/></MemoryRouter></QueryClientProvider>);expect(await screen.findByText('Could not load data',{}, {timeout:3000})).toBeInTheDocument();expect(screen.getByText('Database unavailable')).toBeInTheDocument();});
+});

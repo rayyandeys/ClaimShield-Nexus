@@ -1,0 +1,15 @@
+.env
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+*.log
+artifacts/models/*
+!artifacts/models/.gitkeep
+artifacts/uploads/*
+!artifacts/uploads/.gitkeep
+
+
+
+*node_modules/

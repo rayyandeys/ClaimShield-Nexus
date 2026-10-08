@@ -1,0 +1,481 @@
+{
+  "data\\evaluation\\ground_truth.csv": {
+    "rows": 20000,
+    "columns": [
+      "claim_id",
+      "provider_id",
+      "scenario_type",
+      "injected_suspicious_pattern",
+      "scenario_group_id",
+      "scenario_date",
+      "synthetic_exposure_proxy_usd",
+      "future_30d_observable",
+      "future_30d_injected_pattern",
+      "future_60d_observable",
+      "future_60d_injected_pattern",
+      "future_90d_observable",
+      "future_90d_injected_pattern"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "claim_id": 0,
+      "provider_id": 0,
+      "scenario_type": 0,
+      "injected_suspicious_pattern": 0,
+      "scenario_group_id": 19590,
+      "scenario_date": 0,
+      "synthetic_exposure_proxy_usd": 0,
+      "future_30d_observable": 0,
+      "future_30d_injected_pattern": 802,
+      "future_60d_observable": 0,
+      "future_60d_injected_pattern": 1632,
+      "future_90d_observable": 0,
+      "future_90d_injected_pattern": 2447
+    },
+    "scenario_type": {
+      "normal": 18600,
+      "consumable_quantity_spike": 180,
+      "impossible_timing": 140,
+      "early_refill": 90,
+      "duplicate_billing": 170,
+      "network_referral_pattern": 250,
+      "phantom_service_indicator": 130,
+      "unbundling_indicator": 140,
+      "escalating_billing": 160,
+      "upcoding_indicator": 140
+    }
+  },
+  "data\\synthetic\\billing_policies.csv": {
+    "rows": 10,
+    "columns": [
+      "policy_id",
+      "rule_type",
+      "applicable_claim_types",
+      "synthetic_rule_description",
+      "effective_from",
+      "effective_to",
+      "limitation",
+      "policy_origin"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "policy_id": 0,
+      "rule_type": 0,
+      "applicable_claim_types": 0,
+      "synthetic_rule_description": 0,
+      "effective_from": 0,
+      "effective_to": 0,
+      "limitation": 0,
+      "policy_origin": 0
+    }
+  },
+  "data\\synthetic\\claim_estimates.csv": {
+    "rows": 1850,
+    "columns": [
+      "estimate_id",
+      "claim_id",
+      "episode_id",
+      "estimate_date",
+      "estimated_billed_usd",
+      "estimate_scope",
+      "final_billed_usd",
+      "difference_usd"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "estimate_id": 0,
+      "claim_id": 0,
+      "episode_id": 0,
+      "estimate_date": 0,
+      "estimated_billed_usd": 0,
+      "estimate_scope": 0,
+      "final_billed_usd": 0,
+      "difference_usd": 0
+    }
+  },
+  "data\\synthetic\\claim_lines.csv": {
+    "rows": 27221,
+    "columns": [
+      "claim_line_id",
+      "claim_id",
+      "procedure_code",
+      "unit_count",
+      "unit_charge_usd",
+      "line_billed_usd",
+      "modifier",
+      "days_supply",
+      "days_since_last_fill",
+      "line_role"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "claim_line_id": 0,
+      "claim_id": 0,
+      "procedure_code": 0,
+      "unit_count": 0,
+      "unit_charge_usd": 0,
+      "line_billed_usd": 0,
+      "modifier": 27221,
+      "days_supply": 25128,
+      "days_since_last_fill": 25128,
+      "line_role": 0
+    },
+    "modifier": {
+      "": 27221
+    },
+    "line_role": {
+      "service": 20140,
+      "consumable": 7081
+    }
+  },
+  "data\\synthetic\\claims.csv": {
+    "rows": 20000,
+    "columns": [
+      "claim_id",
+      "member_id",
+      "provider_id",
+      "facility_id",
+      "encounter_id",
+      "service_date",
+      "service_start",
+      "service_duration_min",
+      "claim_type",
+      "claim_status",
+      "submitted_date",
+      "payment_date",
+      "primary_code",
+      "correction_of_claim_id",
+      "related_claim_id",
+      "complexity_band",
+      "billed_amount_usd",
+      "allowed_amount_usd",
+      "paid_amount_usd",
+      "member_responsibility_usd"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "claim_id": 0,
+      "member_id": 0,
+      "provider_id": 0,
+      "facility_id": 0,
+      "encounter_id": 130,
+      "service_date": 0,
+      "service_start": 0,
+      "service_duration_min": 0,
+      "claim_type": 0,
+      "claim_status": 0,
+      "submitted_date": 0,
+      "payment_date": 3158,
+      "primary_code": 0,
+      "correction_of_claim_id": 20000,
+      "related_claim_id": 19830,
+      "complexity_band": 0,
+      "billed_amount_usd": 0,
+      "allowed_amount_usd": 0,
+      "paid_amount_usd": 0,
+      "member_responsibility_usd": 0
+    },
+    "claim_type": {
+      "facility": 3820,
+      "laboratory": 2612,
+      "dme": 1633,
+      "professional": 5437,
+      "home_health": 2008,
+      "pharmacy": 2093,
+      "ambulance": 959,
+      "behavioral_health": 1438
+    },
+    "claim_status": {
+      "paid": 16842,
+      "pending": 2402,
+      "denied": 756
+    },
+    "primary_code": {
+      "SIM-SURGERY-BASIC": 1519,
+      "SIM-LAB-PATH": 879,
+      "SIM-DME-OXYGEN": 545,
+      "SIM-VISIT": 1339,
+      "SIM-LAB-PANEL": 895,
+      "SIM-HH-THERAPY": 1018,
+      "SIM-CONSULT-L1": 1372,
+      "SIM-CONSULT-L3": 1417,
+      "SIM-SURGERY-COMPLEX": 1497,
+      "SIM-RX-ACUTE": 961,
+      "SIM-DME-WHEELCHAIR": 529,
+      "SIM-AMB-LOCAL": 476,
+      "SIM-CONSULT-L2": 1309,
+      "SIM-HH-VISIT": 990,
+      "SIM-IMAGING": 337,
+      "SIM-RX-CHRONIC": 1132,
+      "SIM-BH-EVAL": 721,
+      "SIM-LAB-SINGLE": 838,
+      "SIM-BH-THERAPY": 717,
+      "SIM-DME-SUPPLY": 559,
+      "SIM-AMB-ADV": 483,
+      "SIM-INPATIENT": 327,
+      "SIM-PACKAGE-BASE": 140
+    },
+    "complexity_band": {
+      "low": 14029,
+      "moderate": 4727,
+      "high": 1244
+    },
+    "date_range": [
+      "2024-10-01",
+      "2026-09-30"
+    ]
+  },
+  "data\\synthetic\\encounters.csv": {
+    "rows": 19705,
+    "columns": [
+      "encounter_id",
+      "member_id",
+      "provider_id",
+      "facility_id",
+      "service_start",
+      "duration_min",
+      "documented_code",
+      "documented_complexity",
+      "encounter_source"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "encounter_id": 0,
+      "member_id": 0,
+      "provider_id": 0,
+      "facility_id": 0,
+      "service_start": 0,
+      "duration_min": 0,
+      "documented_code": 0,
+      "documented_complexity": 0,
+      "encounter_source": 0
+    },
+    "documented_code": {
+      "SIM-SURGERY-BASIC": 1519,
+      "SIM-LAB-PATH": 879,
+      "SIM-DME-OXYGEN": 545,
+      "SIM-VISIT": 1294,
+      "SIM-LAB-PANEL": 895,
+      "SIM-HH-THERAPY": 945,
+      "SIM-CONSULT-L1": 1469,
+      "SIM-CONSULT-L3": 1238,
+      "SIM-SURGERY-COMPLEX": 1497,
+      "SIM-RX-ACUTE": 961,
+      "SIM-DME-WHEELCHAIR": 529,
+      "SIM-AMB-LOCAL": 476,
+      "SIM-CONSULT-L2": 1271,
+      "SIM-HH-VISIT": 933,
+      "SIM-IMAGING": 337,
+      "SIM-RX-CHRONIC": 1132,
+      "SIM-BH-EVAL": 721,
+      "SIM-LAB-SINGLE": 838,
+      "SIM-BH-THERAPY": 717,
+      "SIM-DME-SUPPLY": 559,
+      "SIM-AMB-ADV": 483,
+      "SIM-INPATIENT": 327,
+      "SIM-PACKAGE-BASE": 140
+    },
+    "documented_complexity": {
+      "low": 13819,
+      "moderate": 4669,
+      "high": 1217
+    }
+  },
+  "data\\synthetic\\facilities.csv": {
+    "rows": 60,
+    "columns": [
+      "facility_id",
+      "facility_name",
+      "facility_type",
+      "state",
+      "city",
+      "owner_id",
+      "complexity_mix"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "facility_id": 0,
+      "facility_name": 0,
+      "facility_type": 0,
+      "state": 0,
+      "city": 0,
+      "owner_id": 0,
+      "complexity_mix": 0
+    }
+  },
+  "data\\synthetic\\investigation_history.csv": {
+    "rows": 150,
+    "columns": [
+      "investigation_id",
+      "provider_id",
+      "facility_id",
+      "opened_date",
+      "closed_date",
+      "outcome",
+      "outcome_available_date",
+      "review_channel",
+      "case_summary"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "investigation_id": 0,
+      "provider_id": 0,
+      "facility_id": 0,
+      "opened_date": 0,
+      "closed_date": 0,
+      "outcome": 0,
+      "outcome_available_date": 0,
+      "review_channel": 0,
+      "case_summary": 0
+    },
+    "outcome": {
+      "billing_error": 45,
+      "no_finding": 47,
+      "confirmed_improper_payment": 19,
+      "education_required": 19,
+      "inconclusive": 20
+    }
+  },
+  "data\\synthetic\\members.csv": {
+    "rows": 4000,
+    "columns": [
+      "member_id",
+      "age_band",
+      "plan_type",
+      "state",
+      "city",
+      "complexity_band",
+      "synthetic_identity"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "member_id": 0,
+      "age_band": 0,
+      "plan_type": 0,
+      "state": 0,
+      "city": 0,
+      "complexity_band": 0,
+      "synthetic_identity": 0
+    },
+    "complexity_band": {
+      "high": 310,
+      "low": 2648,
+      "moderate": 1042
+    }
+  },
+  "data\\synthetic\\providers.csv": {
+    "rows": 250,
+    "columns": [
+      "provider_id",
+      "provider_name",
+      "provider_type",
+      "specialty",
+      "facility_id",
+      "state",
+      "active_from",
+      "synthetic_identity"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "provider_id": 0,
+      "provider_name": 0,
+      "provider_type": 0,
+      "specialty": 0,
+      "facility_id": 0,
+      "state": 0,
+      "active_from": 0,
+      "synthetic_identity": 0
+    }
+  },
+  "data\\synthetic\\referrals.csv": {
+    "rows": 2000,
+    "columns": [
+      "referral_id",
+      "source_provider_id",
+      "destination_provider_id",
+      "destination_facility_id",
+      "member_id",
+      "referral_date",
+      "referral_reason",
+      "referral_source"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "referral_id": 0,
+      "source_provider_id": 0,
+      "destination_provider_id": 0,
+      "destination_facility_id": 0,
+      "member_id": 0,
+      "referral_date": 0,
+      "referral_reason": 0,
+      "referral_source": 0
+    }
+  },
+  "data\\synthetic\\relationships.csv": {
+    "rows": 410,
+    "columns": [
+      "relationship_id",
+      "source_id",
+      "source_type",
+      "target_id",
+      "target_type",
+      "relationship_type",
+      "effective_from",
+      "effective_to",
+      "record_source",
+      "verification_status"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "relationship_id": 0,
+      "source_id": 0,
+      "source_type": 0,
+      "target_id": 0,
+      "target_type": 0,
+      "relationship_type": 0,
+      "effective_from": 0,
+      "effective_to": 410,
+      "record_source": 0,
+      "verification_status": 0
+    },
+    "source_type": {
+      "owner": 60,
+      "provider": 350
+    },
+    "target_type": {
+      "facility": 310,
+      "provider": 100
+    },
+    "relationship_type": {
+      "owns": 60,
+      "affiliated_with": 250,
+      "shared_practice_indicator": 100
+    }
+  },
+  "data\\synthetic\\supply_items.csv": {
+    "rows": 7081,
+    "columns": [
+      "supply_id",
+      "claim_id",
+      "claim_line_id",
+      "supply_code",
+      "supply_description",
+      "quantity",
+      "unit_charge_usd",
+      "line_billed_usd",
+      "billing_basis"
+    ],
+    "duplicate_ids": 0,
+    "missing": {
+      "supply_id": 0,
+      "claim_id": 0,
+      "claim_line_id": 0,
+      "supply_code": 0,
+      "supply_description": 0,
+      "quantity": 0,
+      "unit_charge_usd": 0,
+      "line_billed_usd": 0,
+      "billing_basis": 0
+    }
+  }
+}

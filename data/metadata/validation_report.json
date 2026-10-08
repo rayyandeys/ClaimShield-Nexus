@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "seed": 20261008,
+  "period": [
+    "2024-10-01",
+    "2026-09-30"
+  ],
+  "claims": 20000,
+  "claim_types": {
+    "facility": 3820,
+    "laboratory": 2612,
+    "dme": 1633,
+    "professional": 5437,
+    "home_health": 2008,
+    "pharmacy": 2093,
+    "ambulance": 959,
+    "behavioral_health": 1438
+  },
+  "scenario_injections": {
+    "duplicate_billing": 170,
+    "upcoding_indicator": 140,
+    "unbundling_indicator": 140,
+    "phantom_service_indicator": 130,
+    "impossible_timing": 140,
+    "consumable_quantity_spike": 180,
+    "network_referral_pattern": 250,
+    "escalating_billing": 160,
+    "early_refill": 90
+  },
+  "all_reference_integrity_checks_passed": true,
+  "billed_amount_equals_line_items": true,
+  "exposure_is_synthetic_proxy_not_confirmed_loss": true,
+  "future_labels_missing_when_outcome_window_incomplete": true,
+  "hidden_ground_truth_separate_from_operational_data": true,
+  "files": {
+    "synthetic/members.csv": 4000,
+    "synthetic/facilities.csv": 60,
+    "synthetic/providers.csv": 250,
+    "synthetic/encounters.csv": 19705,
+    "synthetic/claims.csv": 20000,
+    "synthetic/claim_lines.csv": 27221,
+    "synthetic/supply_items.csv": 7081,
+    "synthetic/claim_estimates.csv": 1850,
+    "synthetic/referrals.csv": 2000,
+    "synthetic/relationships.csv": 410,
+    "synthetic/investigation_history.csv": 150,
+    "synthetic/billing_policies.csv": 10,
+    "evaluation/ground_truth.csv": 20000
+  }
+}

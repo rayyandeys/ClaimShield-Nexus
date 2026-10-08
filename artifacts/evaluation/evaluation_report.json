@@ -1,0 +1,53 @@
+{
+  "status": "CALCULATED",
+  "heldout_start_exclusive": "2025-12-30",
+  "heldout_claims": 7394,
+  "injected_suspicious_claims": 602,
+  "baselines": {
+    "rules_only": {
+      "k": 100,
+      "precision_at_k": 0.39,
+      "recall_at_k": 0.06478405315614617,
+      "false_positive_workload": 61,
+      "synthetic_exposure_proxy_surfaced": 19339.79,
+      "flagged_claims": 499
+    },
+    "rules_plus_ml": {
+      "k": 100,
+      "precision_at_k": 0.59,
+      "recall_at_k": 0.09800664451827243,
+      "false_positive_workload": 41,
+      "synthetic_exposure_proxy_surfaced": 36083.35,
+      "flagged_claims": 693
+    },
+    "rules_ml_graph_supplytrace": {
+      "k": 100,
+      "precision_at_k": 0.92,
+      "recall_at_k": 0.15282392026578073,
+      "false_positive_workload": 8,
+      "synthetic_exposure_proxy_surfaced": 198435.49,
+      "flagged_claims": 744
+    }
+  },
+  "capacity_ranking": {
+    "capacity": 10,
+    "selected_cases": 10,
+    "precision_at_k": 1.0,
+    "claim_recall_at_k": 0.04318936877076412,
+    "false_positive_workload": 0,
+    "synthetic_exposure_proxy_surfaced": 52887.11
+  },
+  "case_consolidation_rate": 0.40794701986754967,
+  "evidence_coverage": 1.0,
+  "processing_seconds": 35.43,
+  "citation_validity": null,
+  "unsupported_claim_rate": null,
+  "notes": [
+    "Ground truth is used only in this aggregate offline evaluation.",
+    "Deterministic thresholds are fixed without fitting labels; anomaly training ends before the held-out period.",
+    "Supply peers use the analysis snapshot; this is retrospective screening, not a prospective replay.",
+    "Injected scenarios may be easy to detect; results do not estimate real-world fraud performance.",
+    "Claim baselines use K=100 claims; final capacity ranking uses K=10 cases. Their precision values are not directly comparable.",
+    "Citation and unsupported-claim metrics are populated separately by controlled tests."
+  ]
+}

@@ -1,0 +1,251 @@
+provider_id,provider_name,provider_type,specialty,facility_id,state,active_from,synthetic_identity
+P0001,Synthetic Provider 001,facility,Surgery,F0001,WA,2024-01-01,yes
+P0002,Synthetic Provider 002,facility,Surgery,F0002,GA,2024-01-01,yes
+P0003,Synthetic Provider 003,facility,Surgery,F0003,OH,2024-01-01,yes
+P0004,Synthetic Provider 004,facility,Surgery,F0004,IL,2024-01-01,yes
+P0005,Synthetic Provider 005,facility,Surgery,F0005,GA,2024-01-01,yes
+P0006,Synthetic Provider 006,facility,Surgery,F0006,CA,2024-01-01,yes
+P0007,Synthetic Provider 007,facility,Surgery,F0007,NY,2024-01-01,yes
+P0008,Synthetic Provider 008,facility,Surgery,F0008,IL,2024-01-01,yes
+P0009,Synthetic Provider 009,facility,Surgery,F0009,NC,2024-01-01,yes
+P0010,Synthetic Provider 010,facility,Surgery,F0010,CA,2024-01-01,yes
+P0011,Synthetic Provider 011,facility,Surgery,F0011,WA,2024-01-01,yes
+P0012,Synthetic Provider 012,facility,Surgery,F0012,GA,2024-01-01,yes
+P0013,Synthetic Provider 013,facility,Surgery,F0013,CA,2024-01-01,yes
+P0014,Synthetic Provider 014,facility,Surgery,F0014,FL,2024-01-01,yes
+P0015,Synthetic Provider 015,professional,Primary Care,F0015,GA,2024-01-01,yes
+P0016,Synthetic Provider 016,professional,Primary Care,F0016,OH,2024-01-01,yes
+P0017,Synthetic Provider 017,professional,Primary Care,F0017,NY,2024-01-01,yes
+P0018,Synthetic Provider 018,professional,Primary Care,F0018,IL,2024-01-01,yes
+P0019,Synthetic Provider 019,professional,Primary Care,F0019,AZ,2024-01-01,yes
+P0020,Synthetic Provider 020,professional,Primary Care,F0020,NY,2024-01-01,yes
+P0021,Synthetic Provider 021,professional,Primary Care,F0021,FL,2024-01-01,yes
+P0022,Synthetic Provider 022,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0023,Synthetic Provider 023,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0024,Synthetic Provider 024,professional,Primary Care,F0024,FL,2024-01-01,yes
+P0025,Synthetic Provider 025,professional,Primary Care,F0025,NC,2024-01-01,yes
+P0026,Synthetic Provider 026,professional,Primary Care,F0026,OH,2024-01-01,yes
+P0027,Synthetic Provider 027,professional,Primary Care,F0027,FL,2024-01-01,yes
+P0028,Synthetic Provider 028,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0029,Synthetic Provider 029,laboratory,Clinical Laboratory,F0029,AZ,2024-01-01,yes
+P0030,Synthetic Provider 030,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0031,Synthetic Provider 031,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0032,Synthetic Provider 032,laboratory,Clinical Laboratory,F0032,NC,2024-01-01,yes
+P0033,Synthetic Provider 033,laboratory,Clinical Laboratory,F0033,OH,2024-01-01,yes
+P0034,Synthetic Provider 034,laboratory,Clinical Laboratory,F0034,IL,2024-01-01,yes
+P0035,Synthetic Provider 035,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0036,Synthetic Provider 036,laboratory,Clinical Laboratory,F0036,OH,2024-01-01,yes
+P0037,Synthetic Provider 037,pharmacy,Pharmacy,F0037,NY,2024-01-01,yes
+P0038,Synthetic Provider 038,pharmacy,Pharmacy,F0038,IL,2024-01-01,yes
+P0039,Synthetic Provider 039,pharmacy,Pharmacy,F0039,NC,2024-01-01,yes
+P0040,Synthetic Provider 040,pharmacy,Pharmacy,F0040,CA,2024-01-01,yes
+P0041,Synthetic Provider 041,pharmacy,Pharmacy,F0041,WA,2024-01-01,yes
+P0042,Synthetic Provider 042,ambulance,Emergency Transport,F0042,GA,2024-01-01,yes
+P0043,Synthetic Provider 043,ambulance,Emergency Transport,F0043,CA,2024-01-01,yes
+P0044,Synthetic Provider 044,ambulance,Emergency Transport,F0044,IL,2024-01-01,yes
+P0045,Synthetic Provider 045,ambulance,Emergency Transport,F0045,WA,2024-01-01,yes
+P0046,Synthetic Provider 046,behavioral_health,Behavioral Health,F0046,OH,2024-01-01,yes
+P0047,Synthetic Provider 047,behavioral_health,Behavioral Health,F0047,TX,2024-01-01,yes
+P0048,Synthetic Provider 048,behavioral_health,Behavioral Health,F0048,GA,2024-01-01,yes
+P0049,Synthetic Provider 049,behavioral_health,Behavioral Health,F0049,OH,2024-01-01,yes
+P0050,Synthetic Provider 050,behavioral_health,Behavioral Health,F0050,NY,2024-01-01,yes
+P0051,Synthetic Provider 051,home_health,Home Health,F0051,FL,2024-01-01,yes
+P0052,Synthetic Provider 052,home_health,Home Health,F0052,GA,2024-01-01,yes
+P0053,Synthetic Provider 053,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0054,Synthetic Provider 054,home_health,Home Health,F0054,NY,2024-01-01,yes
+P0055,Synthetic Provider 055,home_health,Home Health,F0055,WA,2024-01-01,yes
+P0056,Synthetic Provider 056,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0057,Synthetic Provider 057,dme,DME Supplier,F0057,TX,2024-01-01,yes
+P0058,Synthetic Provider 058,dme,DME Supplier,F0058,WA,2024-01-01,yes
+P0059,Synthetic Provider 059,dme,DME Supplier,F0059,OH,2024-01-01,yes
+P0060,Synthetic Provider 060,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0061,Synthetic Provider 061,behavioral_health,Behavioral Health,F0050,NY,2024-01-01,yes
+P0062,Synthetic Provider 062,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0063,Synthetic Provider 063,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0064,Synthetic Provider 064,pharmacy,Pharmacy,F0038,IL,2024-01-01,yes
+P0065,Synthetic Provider 065,behavioral_health,Behavioral Health,F0046,OH,2024-01-01,yes
+P0066,Synthetic Provider 066,facility,Surgery,F0011,WA,2024-01-01,yes
+P0067,Synthetic Provider 067,professional,Primary Care,F0026,OH,2024-01-01,yes
+P0068,Synthetic Provider 068,behavioral_health,Behavioral Health,F0049,OH,2024-01-01,yes
+P0069,Synthetic Provider 069,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0070,Synthetic Provider 070,facility,Surgery,F0006,CA,2024-01-01,yes
+P0071,Synthetic Provider 071,ambulance,Emergency Transport,F0043,CA,2024-01-01,yes
+P0072,Synthetic Provider 072,professional,Primary Care,F0020,NY,2024-01-01,yes
+P0073,Synthetic Provider 073,facility,Surgery,F0003,OH,2024-01-01,yes
+P0074,Synthetic Provider 074,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0075,Synthetic Provider 075,facility,Surgery,F0013,CA,2024-01-01,yes
+P0076,Synthetic Provider 076,facility,Surgery,F0001,WA,2024-01-01,yes
+P0077,Synthetic Provider 077,ambulance,Emergency Transport,F0043,CA,2024-01-01,yes
+P0078,Synthetic Provider 078,ambulance,Emergency Transport,F0044,IL,2024-01-01,yes
+P0079,Synthetic Provider 079,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0080,Synthetic Provider 080,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0081,Synthetic Provider 081,home_health,Home Health,F0054,NY,2024-01-01,yes
+P0082,Synthetic Provider 082,professional,Primary Care,F0017,NY,2024-01-01,yes
+P0083,Synthetic Provider 083,dme,DME Supplier,F0058,WA,2024-01-01,yes
+P0084,Synthetic Provider 084,ambulance,Emergency Transport,F0042,GA,2024-01-01,yes
+P0085,Synthetic Provider 085,professional,Primary Care,F0021,FL,2024-01-01,yes
+P0086,Synthetic Provider 086,professional,Primary Care,F0016,OH,2024-01-01,yes
+P0087,Synthetic Provider 087,home_health,Home Health,F0054,NY,2024-01-01,yes
+P0088,Synthetic Provider 088,pharmacy,Pharmacy,F0039,NC,2024-01-01,yes
+P0089,Synthetic Provider 089,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0090,Synthetic Provider 090,ambulance,Emergency Transport,F0044,IL,2024-01-01,yes
+P0091,Synthetic Provider 091,home_health,Home Health,F0054,NY,2024-01-01,yes
+P0092,Synthetic Provider 092,facility,Surgery,F0009,NC,2024-01-01,yes
+P0093,Synthetic Provider 093,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0094,Synthetic Provider 094,facility,Surgery,F0009,NC,2024-01-01,yes
+P0095,Synthetic Provider 095,facility,Surgery,F0009,NC,2024-01-01,yes
+P0096,Synthetic Provider 096,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0097,Synthetic Provider 097,behavioral_health,Behavioral Health,F0048,GA,2024-01-01,yes
+P0098,Synthetic Provider 098,professional,Primary Care,F0017,NY,2024-01-01,yes
+P0099,Synthetic Provider 099,behavioral_health,Behavioral Health,F0048,GA,2024-01-01,yes
+P0100,Synthetic Provider 100,pharmacy,Pharmacy,F0038,IL,2024-01-01,yes
+P0101,Synthetic Provider 101,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0102,Synthetic Provider 102,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0103,Synthetic Provider 103,pharmacy,Pharmacy,F0039,NC,2024-01-01,yes
+P0104,Synthetic Provider 104,home_health,Home Health,F0052,GA,2024-01-01,yes
+P0105,Synthetic Provider 105,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0106,Synthetic Provider 106,professional,Primary Care,F0016,OH,2024-01-01,yes
+P0107,Synthetic Provider 107,ambulance,Emergency Transport,F0044,IL,2024-01-01,yes
+P0108,Synthetic Provider 108,facility,Surgery,F0009,NC,2024-01-01,yes
+P0109,Synthetic Provider 109,facility,Surgery,F0007,NY,2024-01-01,yes
+P0110,Synthetic Provider 110,behavioral_health,Behavioral Health,F0049,OH,2024-01-01,yes
+P0111,Synthetic Provider 111,pharmacy,Pharmacy,F0037,NY,2024-01-01,yes
+P0112,Synthetic Provider 112,dme,DME Supplier,F0057,TX,2024-01-01,yes
+P0113,Synthetic Provider 113,laboratory,Clinical Laboratory,F0036,OH,2024-01-01,yes
+P0114,Synthetic Provider 114,laboratory,Clinical Laboratory,F0032,NC,2024-01-01,yes
+P0115,Synthetic Provider 115,professional,Primary Care,F0025,NC,2024-01-01,yes
+P0116,Synthetic Provider 116,laboratory,Clinical Laboratory,F0036,OH,2024-01-01,yes
+P0117,Synthetic Provider 117,professional,Primary Care,F0016,OH,2024-01-01,yes
+P0118,Synthetic Provider 118,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0119,Synthetic Provider 119,facility,Surgery,F0001,WA,2024-01-01,yes
+P0120,Synthetic Provider 120,laboratory,Clinical Laboratory,F0029,AZ,2024-01-01,yes
+P0121,Synthetic Provider 121,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0122,Synthetic Provider 122,laboratory,Clinical Laboratory,F0033,OH,2024-01-01,yes
+P0123,Synthetic Provider 123,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0124,Synthetic Provider 124,facility,Surgery,F0009,NC,2024-01-01,yes
+P0125,Synthetic Provider 125,facility,Surgery,F0006,CA,2024-01-01,yes
+P0126,Synthetic Provider 126,facility,Surgery,F0007,NY,2024-01-01,yes
+P0127,Synthetic Provider 127,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0128,Synthetic Provider 128,facility,Surgery,F0001,WA,2024-01-01,yes
+P0129,Synthetic Provider 129,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0130,Synthetic Provider 130,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0131,Synthetic Provider 131,professional,Primary Care,F0026,OH,2024-01-01,yes
+P0132,Synthetic Provider 132,laboratory,Clinical Laboratory,F0029,AZ,2024-01-01,yes
+P0133,Synthetic Provider 133,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0134,Synthetic Provider 134,professional,Primary Care,F0024,FL,2024-01-01,yes
+P0135,Synthetic Provider 135,behavioral_health,Behavioral Health,F0046,OH,2024-01-01,yes
+P0136,Synthetic Provider 136,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0137,Synthetic Provider 137,dme,DME Supplier,F0058,WA,2024-01-01,yes
+P0138,Synthetic Provider 138,home_health,Home Health,F0052,GA,2024-01-01,yes
+P0139,Synthetic Provider 139,laboratory,Clinical Laboratory,F0034,IL,2024-01-01,yes
+P0140,Synthetic Provider 140,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0141,Synthetic Provider 141,facility,Surgery,F0012,GA,2024-01-01,yes
+P0142,Synthetic Provider 142,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0143,Synthetic Provider 143,facility,Surgery,F0003,OH,2024-01-01,yes
+P0144,Synthetic Provider 144,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0145,Synthetic Provider 145,ambulance,Emergency Transport,F0043,CA,2024-01-01,yes
+P0146,Synthetic Provider 146,facility,Surgery,F0003,OH,2024-01-01,yes
+P0147,Synthetic Provider 147,professional,Primary Care,F0024,FL,2024-01-01,yes
+P0148,Synthetic Provider 148,professional,Primary Care,F0019,AZ,2024-01-01,yes
+P0149,Synthetic Provider 149,facility,Surgery,F0006,CA,2024-01-01,yes
+P0150,Synthetic Provider 150,behavioral_health,Behavioral Health,F0046,OH,2024-01-01,yes
+P0151,Synthetic Provider 151,professional,Primary Care,F0021,FL,2024-01-01,yes
+P0152,Synthetic Provider 152,pharmacy,Pharmacy,F0037,NY,2024-01-01,yes
+P0153,Synthetic Provider 153,professional,Primary Care,F0024,FL,2024-01-01,yes
+P0154,Synthetic Provider 154,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0155,Synthetic Provider 155,professional,Primary Care,F0017,NY,2024-01-01,yes
+P0156,Synthetic Provider 156,professional,Primary Care,F0020,NY,2024-01-01,yes
+P0157,Synthetic Provider 157,behavioral_health,Behavioral Health,F0048,GA,2024-01-01,yes
+P0158,Synthetic Provider 158,laboratory,Clinical Laboratory,F0036,OH,2024-01-01,yes
+P0159,Synthetic Provider 159,facility,Surgery,F0014,FL,2024-01-01,yes
+P0160,Synthetic Provider 160,professional,Primary Care,F0017,NY,2024-01-01,yes
+P0161,Synthetic Provider 161,facility,Surgery,F0005,GA,2024-01-01,yes
+P0162,Synthetic Provider 162,professional,Primary Care,F0019,AZ,2024-01-01,yes
+P0163,Synthetic Provider 163,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0164,Synthetic Provider 164,pharmacy,Pharmacy,F0037,NY,2024-01-01,yes
+P0165,Synthetic Provider 165,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0166,Synthetic Provider 166,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0167,Synthetic Provider 167,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0168,Synthetic Provider 168,facility,Surgery,F0006,CA,2024-01-01,yes
+P0169,Synthetic Provider 169,facility,Surgery,F0011,WA,2024-01-01,yes
+P0170,Synthetic Provider 170,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0171,Synthetic Provider 171,dme,DME Supplier,F0056,CA,2024-01-01,yes
+P0172,Synthetic Provider 172,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0173,Synthetic Provider 173,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0174,Synthetic Provider 174,facility,Surgery,F0007,NY,2024-01-01,yes
+P0175,Synthetic Provider 175,facility,Surgery,F0008,IL,2024-01-01,yes
+P0176,Synthetic Provider 176,facility,Surgery,F0009,NC,2024-01-01,yes
+P0177,Synthetic Provider 177,home_health,Home Health,F0051,FL,2024-01-01,yes
+P0178,Synthetic Provider 178,behavioral_health,Behavioral Health,F0049,OH,2024-01-01,yes
+P0179,Synthetic Provider 179,professional,Primary Care,F0018,IL,2024-01-01,yes
+P0180,Synthetic Provider 180,professional,Primary Care,F0015,GA,2024-01-01,yes
+P0181,Synthetic Provider 181,facility,Surgery,F0003,OH,2024-01-01,yes
+P0182,Synthetic Provider 182,pharmacy,Pharmacy,F0038,IL,2024-01-01,yes
+P0183,Synthetic Provider 183,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0184,Synthetic Provider 184,ambulance,Emergency Transport,F0045,WA,2024-01-01,yes
+P0185,Synthetic Provider 185,ambulance,Emergency Transport,F0045,WA,2024-01-01,yes
+P0186,Synthetic Provider 186,facility,Surgery,F0001,WA,2024-01-01,yes
+P0187,Synthetic Provider 187,dme,DME Supplier,F0057,TX,2024-01-01,yes
+P0188,Synthetic Provider 188,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0189,Synthetic Provider 189,facility,Surgery,F0006,CA,2024-01-01,yes
+P0190,Synthetic Provider 190,facility,Surgery,F0011,WA,2024-01-01,yes
+P0191,Synthetic Provider 191,facility,Surgery,F0008,IL,2024-01-01,yes
+P0192,Synthetic Provider 192,facility,Surgery,F0009,NC,2024-01-01,yes
+P0193,Synthetic Provider 193,facility,Surgery,F0002,GA,2024-01-01,yes
+P0194,Synthetic Provider 194,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0195,Synthetic Provider 195,professional,Primary Care,F0027,FL,2024-01-01,yes
+P0196,Synthetic Provider 196,facility,Surgery,F0012,GA,2024-01-01,yes
+P0197,Synthetic Provider 197,behavioral_health,Behavioral Health,F0050,NY,2024-01-01,yes
+P0198,Synthetic Provider 198,laboratory,Clinical Laboratory,F0035,NC,2024-01-01,yes
+P0199,Synthetic Provider 199,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0200,Synthetic Provider 200,professional,Primary Care,F0027,FL,2024-01-01,yes
+P0201,Synthetic Provider 201,facility,Surgery,F0014,FL,2024-01-01,yes
+P0202,Synthetic Provider 202,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0203,Synthetic Provider 203,professional,Primary Care,F0027,FL,2024-01-01,yes
+P0204,Synthetic Provider 204,ambulance,Emergency Transport,F0045,WA,2024-01-01,yes
+P0205,Synthetic Provider 205,facility,Surgery,F0014,FL,2024-01-01,yes
+P0206,Synthetic Provider 206,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0207,Synthetic Provider 207,dme,DME Supplier,F0059,OH,2024-01-01,yes
+P0208,Synthetic Provider 208,facility,Surgery,F0006,CA,2024-01-01,yes
+P0209,Synthetic Provider 209,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0210,Synthetic Provider 210,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0211,Synthetic Provider 211,facility,Surgery,F0002,GA,2024-01-01,yes
+P0212,Synthetic Provider 212,dme,DME Supplier,F0057,TX,2024-01-01,yes
+P0213,Synthetic Provider 213,facility,Surgery,F0003,OH,2024-01-01,yes
+P0214,Synthetic Provider 214,laboratory,Clinical Laboratory,F0031,WA,2024-01-01,yes
+P0215,Synthetic Provider 215,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0216,Synthetic Provider 216,facility,Surgery,F0014,FL,2024-01-01,yes
+P0217,Synthetic Provider 217,laboratory,Clinical Laboratory,F0036,OH,2024-01-01,yes
+P0218,Synthetic Provider 218,dme,DME Supplier,F0058,WA,2024-01-01,yes
+P0219,Synthetic Provider 219,behavioral_health,Behavioral Health,F0048,GA,2024-01-01,yes
+P0220,Synthetic Provider 220,facility,Surgery,F0009,NC,2024-01-01,yes
+P0221,Synthetic Provider 221,pharmacy,Pharmacy,F0037,NY,2024-01-01,yes
+P0222,Synthetic Provider 222,facility,Surgery,F0010,CA,2024-01-01,yes
+P0223,Synthetic Provider 223,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0224,Synthetic Provider 224,professional,Primary Care,F0018,IL,2024-01-01,yes
+P0225,Synthetic Provider 225,facility,Surgery,F0003,OH,2024-01-01,yes
+P0226,Synthetic Provider 226,professional,Primary Care,F0028,WA,2024-01-01,yes
+P0227,Synthetic Provider 227,facility,Surgery,F0007,NY,2024-01-01,yes
+P0228,Synthetic Provider 228,facility,Surgery,F0003,OH,2024-01-01,yes
+P0229,Synthetic Provider 229,professional,Primary Care,F0019,AZ,2024-01-01,yes
+P0230,Synthetic Provider 230,professional,Primary Care,F0025,NC,2024-01-01,yes
+P0231,Synthetic Provider 231,dme,DME Supplier,F0060,TX,2024-01-01,yes
+P0232,Synthetic Provider 232,laboratory,Clinical Laboratory,F0029,AZ,2024-01-01,yes
+P0233,Synthetic Provider 233,facility,Surgery,F0007,NY,2024-01-01,yes
+P0234,Synthetic Provider 234,ambulance,Emergency Transport,F0045,WA,2024-01-01,yes
+P0235,Synthetic Provider 235,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0236,Synthetic Provider 236,professional,Primary Care,F0022,AZ,2024-01-01,yes
+P0237,Synthetic Provider 237,laboratory,Clinical Laboratory,F0030,NY,2024-01-01,yes
+P0238,Synthetic Provider 238,facility,Surgery,F0012,GA,2024-01-01,yes
+P0239,Synthetic Provider 239,professional,Primary Care,F0023,TX,2024-01-01,yes
+P0240,Synthetic Provider 240,laboratory,Clinical Laboratory,F0032,NC,2024-01-01,yes
+P0241,Synthetic Provider 241,professional,Primary Care,F0024,FL,2024-01-01,yes
+P0242,Synthetic Provider 242,dme,DME Supplier,F0058,WA,2024-01-01,yes
+P0243,Synthetic Provider 243,pharmacy,Pharmacy,F0038,IL,2024-01-01,yes
+P0244,Synthetic Provider 244,home_health,Home Health,F0053,TX,2024-01-01,yes
+P0245,Synthetic Provider 245,facility,Surgery,F0008,IL,2024-01-01,yes
+P0246,Synthetic Provider 246,pharmacy,Pharmacy,F0041,WA,2024-01-01,yes
+P0247,Synthetic Provider 247,laboratory,Clinical Laboratory,F0033,OH,2024-01-01,yes
+P0248,Synthetic Provider 248,professional,Primary Care,F0020,NY,2024-01-01,yes
+P0249,Synthetic Provider 249,facility,Surgery,F0008,IL,2024-01-01,yes
+P0250,Synthetic Provider 250,professional,Primary Care,F0027,FL,2024-01-01,yes

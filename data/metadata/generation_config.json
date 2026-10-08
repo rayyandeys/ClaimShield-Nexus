@@ -1,0 +1,9 @@
+{
+  "seed": 20261008,
+  "start": "2024-10-01",
+  "end": "2026-09-30",
+  "synthetic": true,
+  "n_claims": 20000,
+  "source_data": "Generated from Python standard library; no real healthcare records.",
+  "rules": "Demonstration-only, not CMS/NCCI clinical or payment rules."
+}

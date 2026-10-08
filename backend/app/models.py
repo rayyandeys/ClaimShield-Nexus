@@ -1,0 +1,60 @@
+"""SQLAlchemy Core relational schema. CSV columns reflect inspected source headers."""
+from sqlalchemy import MetaData, Table, Column, String, Text, Integer, Float, Boolean, Date, DateTime, Numeric, ForeignKey, CheckConstraint, Index, text
+from sqlalchemy.dialects.postgresql import JSONB
+
+metadata = MetaData()
+SPECS = {
+    'members': 'member_id age_band plan_type state city complexity_band synthetic_identity',
+    'facilities': 'facility_id facility_name facility_type state city owner_id complexity_mix',
+    'providers': 'provider_id provider_name provider_type specialty facility_id state active_from synthetic_identity',
+    'encounters': 'encounter_id member_id provider_id facility_id service_start duration_min documented_code documented_complexity encounter_source',
+    'claims': 'claim_id member_id provider_id facility_id encounter_id service_date service_start service_duration_min claim_type claim_status submitted_date payment_date primary_code correction_of_claim_id related_claim_id complexity_band billed_amount_usd allowed_amount_usd paid_amount_usd member_responsibility_usd',
+    'claim_lines': 'claim_line_id claim_id procedure_code unit_count unit_charge_usd line_billed_usd modifier days_supply days_since_last_fill line_role',
+    'supply_items': 'supply_id claim_id claim_line_id supply_code supply_description quantity unit_charge_usd line_billed_usd billing_basis',
+    'claim_estimates': 'estimate_id claim_id episode_id estimate_date estimated_billed_usd estimate_scope final_billed_usd difference_usd',
+    'referrals': 'referral_id source_provider_id destination_provider_id destination_facility_id member_id referral_date referral_reason referral_source',
+    'relationships': 'relationship_id source_id source_type target_id target_type relationship_type effective_from effective_to record_source verification_status',
+    'investigation_history': 'investigation_id provider_id facility_id opened_date closed_date outcome outcome_available_date review_channel case_summary',
+    'billing_policies': 'policy_id rule_type applicable_claim_types synthetic_rule_description effective_from effective_to limitation policy_origin',
+}
+NULLABLE = {'encounter_id', 'payment_date', 'correction_of_claim_id', 'related_claim_id', 'modifier', 'days_supply', 'days_since_last_fill', 'effective_to', 'closed_date', 'outcome_available_date'}
+INTS = {'duration_min', 'service_duration_min', 'unit_count', 'quantity', 'days_supply', 'days_since_last_fill'}
+DATES = {'active_from', 'service_date', 'submitted_date', 'payment_date', 'estimate_date', 'referral_date', 'effective_from', 'effective_to', 'opened_date', 'closed_date', 'outcome_available_date'}
+FK = {'member_id': 'members.member_id', 'provider_id': 'providers.provider_id', 'facility_id': 'facilities.facility_id', 'encounter_id': 'encounters.encounter_id', 'claim_id': 'claims.claim_id', 'claim_line_id': 'claim_lines.claim_line_id', 'source_provider_id': 'providers.provider_id', 'destination_provider_id': 'providers.provider_id', 'destination_facility_id': 'facilities.facility_id', 'correction_of_claim_id': 'claims.claim_id', 'related_claim_id': 'claims.claim_id'}
+
+def stamp(): return Column('created_at', DateTime(timezone=True), nullable=False, server_default=text('now()'))
+def ident(name): return Column(name, String(100), primary_key=True)
+def js(name, default='{}'): return Column(name, JSONB, nullable=False, server_default=text(f"'{default}'::jsonb"))
+
+batches = Table('analysis_batches', metadata, ident('batch_id'), Column('kind', String(30), nullable=False), Column('status', String(30), nullable=False), Column('source', Text), Column('checksum', String(64)), Column('progress', Float, default=0), js('report'), stamp(), Column('completed_at', DateTime(timezone=True)))
+entities = Table('entities', metadata, ident('entity_id'), Column('entity_type', String(30), nullable=False), Column('label', Text, nullable=False), Column('source_table', String(50), nullable=False))
+tables = {}
+for name, spec in SPECS.items():
+    columns = []
+    for i, field in enumerate(spec.split()):
+        typ = Numeric(16, 2) if field.endswith('_usd') else Integer if field in INTS else Date if field in DATES else DateTime(timezone=True) if field == 'service_start' else Text
+        args = []
+        if i and field in FK: args.append(ForeignKey(FK[field], deferrable=True, initially='DEFERRED'))
+        if name == 'relationships' and field in {'source_id', 'target_id'}: args.append(ForeignKey('entities.entity_id', deferrable=True, initially='DEFERRED'))
+        columns.append(Column(field, typ, *args, primary_key=i == 0, nullable=False if i == 0 else field in NULLABLE, index=i > 0 and (field.endswith('_id') or field in {'service_date', 'service_start', 'claim_status'})))
+    columns.extend([Column('source_batch_id', String(100), ForeignKey('analysis_batches.batch_id'), nullable=False), Column('source_file', Text, nullable=False), stamp()])
+    tables[name] = Table(name, metadata, *columns)
+    for field in spec.split():
+        if (field.endswith('_usd') and field != 'difference_usd') or field in INTS:
+            tables[name].append_constraint(CheckConstraint(f'{field} >= 0', name=f'ck_{name}_{field}_nonnegative'))
+
+jobs = Table('analysis_jobs', metadata, ident('job_id'), Column('kind', String(30), nullable=False), Column('status', String(30), nullable=False, index=True), js('payload'), Column('progress', Float, default=0), Column('attempts', Integer, default=0), Column('error', Text), Column('lease_until', DateTime(timezone=True)), Column('worker_id', Text), js('result'), stamp(), Column('completed_at', DateTime(timezone=True)))
+findings = Table('findings', metadata, ident('finding_id'), Column('finding_type', String(80), nullable=False, index=True), Column('engine', String(30), nullable=False), Column('entity_type', String(30), nullable=False), Column('entity_id', Text, ForeignKey('entities.entity_id'), nullable=False, index=True), Column('severity', String(20), nullable=False), Column('score', Float, nullable=False), Column('rule_or_model_version', Text, nullable=False), Column('explanation', Text, nullable=False), Column('data_completeness', Float, nullable=False), js('limitations', '[]'), Column('status', String(30), nullable=False, default='ACTIVE', index=True), Column('batch_id', String(100), ForeignKey('analysis_batches.batch_id'), index=True), stamp())
+finding_claims = Table('finding_claims', metadata, Column('finding_id', String(100), ForeignKey('findings.finding_id'), primary_key=True), Column('claim_id', Text, ForeignKey('claims.claim_id'), primary_key=True))
+evidence = Table('finding_evidence', metadata, ident('evidence_id'), Column('finding_id', String(100), ForeignKey('findings.finding_id'), nullable=False, index=True), Column('source_table_or_type', Text, nullable=False), Column('source_record_id', Text, nullable=False, index=True), Column('evidence_type', Text, nullable=False), js('observed_value'), js('reference_value_or_context'), Column('record_timestamp', DateTime(timezone=True)), js('provenance'), Column('verification_status', String(40), nullable=False, default='source_record'))
+models = Table('model_versions', metadata, ident('model_version'), Column('model_type', Text, nullable=False), Column('status', Text, nullable=False), Column('artifact_path', Text), js('metadata'), stamp())
+predictions = Table('risk_predictions', metadata, ident('prediction_id'), Column('provider_id', Text, ForeignKey('providers.provider_id'), nullable=False, index=True), Column('model_version', String(100), ForeignKey('model_versions.model_version')), Column('horizon', Integer, nullable=False), Column('cutoff', Date, nullable=False), Column('value', Float), js('details'), stamp())
+cases = Table('cases', metadata, ident('case_id'), Column('title', Text, nullable=False), Column('summary', Text, nullable=False), Column('primary_entity', Text, ForeignKey('entities.entity_id'), index=True), Column('case_status', String(30), nullable=False, default='NEW', index=True), Column('severity', String(20), nullable=False), Column('priority_score', Float, nullable=False, default=0), Column('potential_financial_exposure', Numeric(16, 2), nullable=False, default=0), Column('evidence_strength', Float, nullable=False, default=0), Column('member_impact', Integer, nullable=False, default=0), Column('payment_workflow', String(30), nullable=False), Column('assigned_investigator', Text), js('ranking'), Column('evidence_version', Integer, nullable=False, default=1), stamp(), Column('updated_at', DateTime(timezone=True), nullable=False, server_default=text('now()')))
+case_findings = Table('case_findings', metadata, Column('case_id', String(100), ForeignKey('cases.case_id'), primary_key=True), Column('finding_id', String(100), ForeignKey('findings.finding_id'), primary_key=True))
+case_entities = Table('case_entities', metadata, Column('case_id', String(100), ForeignKey('cases.case_id'), primary_key=True), Column('entity_id', Text, ForeignKey('entities.entity_id'), primary_key=True))
+assignments = Table('case_assignments', metadata, ident('assignment_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False), Column('investigator', Text, nullable=False), stamp())
+briefs = Table('investigation_briefs', metadata, ident('brief_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False, index=True), Column('evidence_version', Integer, nullable=False), Column('kind', Text, nullable=False), Column('mode', Text, nullable=False), js('content'), stamp())
+actions = Table('investigator_actions', metadata, ident('action_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('actor', Text, nullable=False), Column('action_type', Text, nullable=False), Column('explanation', Text, nullable=False), js('previous_state'), js('new_state'), stamp())
+audit = Table('audit_events', metadata, ident('event_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), index=True), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('actor', Text, nullable=False), Column('action_type', Text, nullable=False), Column('explanation', Text, nullable=False), js('previous_state'), js('new_state'), stamp())
+Index('ix_cases_priority', cases.c.priority_score.desc())
+

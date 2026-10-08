@@ -1,0 +1,193 @@
+{
+  "synthetic/members.csv": {
+    "rows": 4000,
+    "columns": [
+      "member_id",
+      "age_band",
+      "plan_type",
+      "state",
+      "city",
+      "complexity_band",
+      "synthetic_identity"
+    ]
+  },
+  "synthetic/facilities.csv": {
+    "rows": 60,
+    "columns": [
+      "facility_id",
+      "facility_name",
+      "facility_type",
+      "state",
+      "city",
+      "owner_id",
+      "complexity_mix"
+    ]
+  },
+  "synthetic/providers.csv": {
+    "rows": 250,
+    "columns": [
+      "provider_id",
+      "provider_name",
+      "provider_type",
+      "specialty",
+      "facility_id",
+      "state",
+      "active_from",
+      "synthetic_identity"
+    ]
+  },
+  "synthetic/encounters.csv": {
+    "rows": 19705,
+    "columns": [
+      "encounter_id",
+      "member_id",
+      "provider_id",
+      "facility_id",
+      "service_start",
+      "duration_min",
+      "documented_code",
+      "documented_complexity",
+      "encounter_source"
+    ]
+  },
+  "synthetic/claims.csv": {
+    "rows": 20000,
+    "columns": [
+      "claim_id",
+      "member_id",
+      "provider_id",
+      "facility_id",
+      "encounter_id",
+      "service_date",
+      "service_start",
+      "service_duration_min",
+      "claim_type",
+      "claim_status",
+      "submitted_date",
+      "payment_date",
+      "primary_code",
+      "correction_of_claim_id",
+      "related_claim_id",
+      "complexity_band",
+      "billed_amount_usd",
+      "allowed_amount_usd",
+      "paid_amount_usd",
+      "member_responsibility_usd"
+    ]
+  },
+  "synthetic/claim_lines.csv": {
+    "rows": 27221,
+    "columns": [
+      "claim_line_id",
+      "claim_id",
+      "procedure_code",
+      "unit_count",
+      "unit_charge_usd",
+      "line_billed_usd",
+      "modifier",
+      "days_supply",
+      "days_since_last_fill",
+      "line_role"
+    ]
+  },
+  "synthetic/supply_items.csv": {
+    "rows": 7081,
+    "columns": [
+      "supply_id",
+      "claim_id",
+      "claim_line_id",
+      "supply_code",
+      "supply_description",
+      "quantity",
+      "unit_charge_usd",
+      "line_billed_usd",
+      "billing_basis"
+    ]
+  },
+  "synthetic/claim_estimates.csv": {
+    "rows": 1850,
+    "columns": [
+      "estimate_id",
+      "claim_id",
+      "episode_id",
+      "estimate_date",
+      "estimated_billed_usd",
+      "estimate_scope",
+      "final_billed_usd",
+      "difference_usd"
+    ]
+  },
+  "synthetic/referrals.csv": {
+    "rows": 2000,
+    "columns": [
+      "referral_id",
+      "source_provider_id",
+      "destination_provider_id",
+      "destination_facility_id",
+      "member_id",
+      "referral_date",
+      "referral_reason",
+      "referral_source"
+    ]
+  },
+  "synthetic/relationships.csv": {
+    "rows": 410,
+    "columns": [
+      "relationship_id",
+      "source_id",
+      "source_type",
+      "target_id",
+      "target_type",
+      "relationship_type",
+      "effective_from",
+      "effective_to",
+      "record_source",
+      "verification_status"
+    ]
+  },
+  "synthetic/investigation_history.csv": {
+    "rows": 150,
+    "columns": [
+      "investigation_id",
+      "provider_id",
+      "facility_id",
+      "opened_date",
+      "closed_date",
+      "outcome",
+      "outcome_available_date",
+      "review_channel",
+      "case_summary"
+    ]
+  },
+  "synthetic/billing_policies.csv": {
+    "rows": 10,
+    "columns": [
+      "policy_id",
+      "rule_type",
+      "applicable_claim_types",
+      "synthetic_rule_description",
+      "effective_from",
+      "effective_to",
+      "limitation",
+      "policy_origin"
+    ]
+  },
+  "evaluation/ground_truth.csv": {
+    "rows": 20000,
+    "columns": [
+      "claim_id",
+      "provider_id",
+      "scenario_type",
+      "injected_suspicious_pattern",
+      "scenario_group_id",
+      "scenario_date",
+      "synthetic_exposure_proxy_usd",
+      "future_30d_observable",
+      "future_30d_injected_pattern",
+      "future_60d_observable",
+      "future_60d_injected_pattern",
+      "future_90d_observable",
+      "future_90d_injected_pattern"
+    ]
+  }
+}

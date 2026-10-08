@@ -1,0 +1,1005 @@
+{
+  "status": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "table": "claims",
+      "record_id": "C0000112",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000231",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000343",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000386",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000397",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000415",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000475",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000562",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000576",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000752",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000798",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000801",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0000980",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0001512",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0001705",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0001822",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0001848",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0002445",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0002643",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0002744",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0002845",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0003338",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0003345",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0003633",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0004075",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0004435",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0004515",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0004551",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0004647",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0005498",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0005522",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0005640",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0005964",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006638",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006702",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006734",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006785",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006789",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006849",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006934",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0006978",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007294",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007580",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007609",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007745",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007762",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0007946",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008075",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008093",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008597",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008644",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008836",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008921",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0008929",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009151",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009378",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009417",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009613",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009733",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009802",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0009867",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0010054",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0010993",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011054",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011127",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011144",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011185",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011209",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011241",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011312",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011314",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011426",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011555",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011673",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0011713",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012035",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012098",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012108",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012199",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012256",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012541",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012658",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012802",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012926",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0012996",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013033",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013104",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013232",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013668",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013751",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0013853",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0014040",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0014272",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0014321",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0014430",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0014609",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0015037",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0015258",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0015484",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0015566",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0015748",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016498",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016573",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016605",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016611",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016648",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016725",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0016755",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017054",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017071",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017383",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017580",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017773",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017780",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017855",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017892",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0017964",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018032",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018131",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018318",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018404",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018629",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0018797",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019014",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019141",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019157",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019257",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019639",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019659",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    },
+    {
+      "table": "claims",
+      "record_id": "C0019684",
+      "field": "encounter_id",
+      "message": "No encounter reference; documentation gap",
+      "severity": "WARNING"
+    }
+  ],
+  "sources": {
+    "members": {
+      "file": "members.csv",
+      "sha256": "6f3e8571271565e7d270cb8df0687c7fa0b352e2837399c6551dc9fd52f9f466"
+    },
+    "facilities": {
+      "file": "facilities.csv",
+      "sha256": "b75556b5b58a95c5cd0c6b24a29a4fa44896df823718352c6b3cc6a63b177c41"
+    },
+    "providers": {
+      "file": "providers.csv",
+      "sha256": "8ea97fd2c35dd81a68dd570edea93883f069ace0abc905436330bbccec7be1d0"
+    },
+    "encounters": {
+      "file": "encounters.csv",
+      "sha256": "05b7ac2b8b037ab58c62a2eed3f5c2e2cdd059140eec986372584d91cbcc653f"
+    },
+    "claims": {
+      "file": "claims.csv",
+      "sha256": "c2fa23afa449aa4a83b05819aa7f533974dba39e4e67f24509064f57dbb19e3e"
+    },
+    "claim_lines": {
+      "file": "claim_lines.csv",
+      "sha256": "1f663a73f738ce4a87dcba03deb558df47c850b5b92706d92a7e0e5893e86af7"
+    },
+    "supply_items": {
+      "file": "supply_items.csv",
+      "sha256": "6ece3aed6fcb9f85f3f1e3dea4937ddab995d432e2cb987d42fc60fa97384964"
+    },
+    "claim_estimates": {
+      "file": "claim_estimates.csv",
+      "sha256": "abc02b9b30fbafdfe19ea2aecdf7ede6fe2652f46a20de0710c99674a697e6b7"
+    },
+    "referrals": {
+      "file": "referrals.csv",
+      "sha256": "67961adc71491b046c457e1e285f231ea2e360270699a2409ff70fe3b16cf8a4"
+    },
+    "relationships": {
+      "file": "relationships.csv",
+      "sha256": "7c23e1203f47896a2cedacc74eeeee95b2b9ebbce4da53c69d824d5225567c5e"
+    },
+    "investigation_history": {
+      "file": "investigation_history.csv",
+      "sha256": "4fd483cd34711fb76e6af9d6f29d065012b22706b16691b2aa9648b4561f9ea5"
+    },
+    "billing_policies": {
+      "file": "billing_policies.csv",
+      "sha256": "542e8846bd46e2c5f4f6f2cc1455a22a49e335cada9e9cbcc51513ab7fa38e5f"
+    }
+  },
+  "counts": {
+    "members": 4000,
+    "facilities": 60,
+    "providers": 250,
+    "encounters": 19705,
+    "claims": 20000,
+    "claim_lines": 27221,
+    "supply_items": 7081,
+    "claim_estimates": 1850,
+    "referrals": 2000,
+    "relationships": 410,
+    "investigation_history": 150,
+    "billing_policies": 10
+  },
+  "date_range": [
+    "2024-10-01",
+    "2026-09-30"
+  ],
+  "assumptions": [
+    "Naive synthetic timestamps interpreted as UTC.",
+    "Rounded unit-price arithmetic warnings preserve source values.",
+    "Potential exposure is not confirmed recoverable overpayment.",
+    "Ground truth is excluded from operational ingestion."
+  ],
+  "synthetic": true,
+  "reused_batch_id": "IMP-d22bf29a8d07403a",
+  "inserted_counts": {
+    "members": 0,
+    "facilities": 0,
+    "providers": 0,
+    "encounters": 0,
+    "claims": 0,
+    "claim_lines": 0,
+    "supply_items": 0,
+    "claim_estimates": 0,
+    "referrals": 0,
+    "relationships": 0,
+    "investigation_history": 0,
+    "billing_policies": 0
+  }
+}

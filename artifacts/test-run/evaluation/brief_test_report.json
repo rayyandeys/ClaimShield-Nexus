@@ -1,0 +1,35 @@
+{
+  "status": "CALCULATED",
+  "controlled_responses": 5,
+  "valid_structured_response_accepted": 1,
+  "invalid_or_unavailable_responses_fell_back": 4,
+  "invented_evidence_accepted": 0,
+  "observations": [
+    {
+      "input": "valid",
+      "output_mode": "groq",
+      "invented_evidence_present": false
+    },
+    {
+      "input": "malformed",
+      "output_mode": "deterministic",
+      "invented_evidence_present": false
+    },
+    {
+      "input": "invented",
+      "output_mode": "deterministic",
+      "invented_evidence_present": false
+    },
+    {
+      "input": "rate_limit",
+      "output_mode": "deterministic",
+      "invented_evidence_present": false
+    },
+    {
+      "input": "timeout",
+      "output_mode": "deterministic",
+      "invented_evidence_present": false
+    }
+  ],
+  "limitation": "Controlled fixtures exercise structural and source-value verification; this is not a real-world factuality benchmark or a live Groq test."
+}

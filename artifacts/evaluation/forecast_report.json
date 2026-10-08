@@ -1,0 +1,458 @@
+{
+  "30": {
+    "target": "At least one new observable event for a provider with prior events, or at least two new events for a provider without prior events. Events: synthetic code mismatch, configured package conflict, early refill. Not criminal fraud.",
+    "horizon": 30,
+    "features": [
+      "claim_count",
+      "allowed_mean_peer_ratio",
+      "allowed_total_peer_ratio",
+      "volume_change",
+      "member_count",
+      "procedure_count",
+      "observed_events",
+      "event_rate",
+      "paid_total_peer_ratio",
+      "referral_concentration",
+      "known_improper_outcomes"
+    ],
+    "seed": 20261008,
+    "embargo_days": 90,
+    "splits": {
+      "train": {
+        "rows": 1723,
+        "start": "2024-12-30",
+        "end": "2025-06-28",
+        "positive": 45
+      },
+      "validation": {
+        "rows": 739,
+        "start": "2025-10-26",
+        "end": "2025-12-25",
+        "positive": 29
+      },
+      "test": {
+        "rows": 739,
+        "start": "2026-04-24",
+        "end": "2026-06-23",
+        "positive": 33
+      }
+    },
+    "limitations": [
+      "Synthetic event recurrence, not probability of fraud.",
+      "Providers can appear in multiple chronological periods; label windows across split boundaries do not overlap.",
+      "Within-split snapshots overlap; observations are correlated.",
+      "Probabilities are not post-hoc calibrated; inspect held-out calibration bins.",
+      "Horizons are independently fitted and need not be monotonic."
+    ],
+    "validation": {
+      "n": 739,
+      "positives": 29,
+      "pr_auc": 0.13546604309246651,
+      "roc_auc": 0.6232151529868868,
+      "brier": 0.0369078776741828,
+      "precision_at_k": 0.2,
+      "recall_at_k": 0.1724137931034483,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 730,
+          "mean_prediction": 0.015953316459193928,
+          "observed_rate": 0.038356164383561646
+        },
+        {
+          "lower": 0.2,
+          "count": 7,
+          "mean_prediction": 0.25025811235594786,
+          "observed_rate": 0.0
+        },
+        {
+          "lower": 0.4,
+          "count": 2,
+          "mean_prediction": 0.5519867226668322,
+          "observed_rate": 0.5
+        }
+      ]
+    },
+    "test": {
+      "n": 739,
+      "positives": 33,
+      "pr_auc": 0.06999786441107511,
+      "roc_auc": 0.6382092883509315,
+      "brier": 0.04570307403123397,
+      "precision_at_k": 0.04,
+      "recall_at_k": 0.030303030303030304,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 728,
+          "mean_prediction": 0.015500064438159884,
+          "observed_rate": 0.04532967032967033
+        },
+        {
+          "lower": 0.2,
+          "count": 8,
+          "mean_prediction": 0.3207263292086348,
+          "observed_rate": 0.0
+        },
+        {
+          "lower": 0.4,
+          "count": 3,
+          "mean_prediction": 0.535748787907739,
+          "observed_rate": 0.0
+        }
+      ]
+    },
+    "logistic_benchmark_test": {
+      "n": 739,
+      "positives": 33,
+      "pr_auc": 0.1332555071029239,
+      "roc_auc": 0.741050733968581,
+      "brier": 0.041769480510968786,
+      "precision_at_k": 0.16,
+      "recall_at_k": 0.12121212121212122,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 733,
+          "mean_prediction": 0.020094163912569712,
+          "observed_rate": 0.04229195088676671
+        },
+        {
+          "lower": 0.2,
+          "count": 5,
+          "mean_prediction": 0.27648585661336,
+          "observed_rate": 0.4
+        },
+        {
+          "lower": 0.4,
+          "count": 1,
+          "mean_prediction": 0.48597578403625774,
+          "observed_rate": 0.0
+        }
+      ]
+    }
+  },
+  "60": {
+    "target": "At least one new observable event for a provider with prior events, or at least two new events for a provider without prior events. Events: synthetic code mismatch, configured package conflict, early refill. Not criminal fraud.",
+    "horizon": 60,
+    "features": [
+      "claim_count",
+      "allowed_mean_peer_ratio",
+      "allowed_total_peer_ratio",
+      "volume_change",
+      "member_count",
+      "procedure_count",
+      "observed_events",
+      "event_rate",
+      "paid_total_peer_ratio",
+      "referral_concentration",
+      "known_improper_outcomes"
+    ],
+    "seed": 20261008,
+    "embargo_days": 90,
+    "splits": {
+      "train": {
+        "rows": 1723,
+        "start": "2024-12-30",
+        "end": "2025-06-28",
+        "positive": 92
+      },
+      "validation": {
+        "rows": 739,
+        "start": "2025-10-26",
+        "end": "2025-12-25",
+        "positive": 48
+      },
+      "test": {
+        "rows": 739,
+        "start": "2026-04-24",
+        "end": "2026-06-23",
+        "positive": 58
+      }
+    },
+    "limitations": [
+      "Synthetic event recurrence, not probability of fraud.",
+      "Providers can appear in multiple chronological periods; label windows across split boundaries do not overlap.",
+      "Within-split snapshots overlap; observations are correlated.",
+      "Probabilities are not post-hoc calibrated; inspect held-out calibration bins.",
+      "Horizons are independently fitted and need not be monotonic."
+    ],
+    "validation": {
+      "n": 739,
+      "positives": 48,
+      "pr_auc": 0.16185932487259988,
+      "roc_auc": 0.6762542209358418,
+      "brier": 0.060332606455591534,
+      "precision_at_k": 0.28,
+      "recall_at_k": 0.14583333333333334,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 691,
+          "mean_prediction": 0.030237908147105697,
+          "observed_rate": 0.05499276410998553
+        },
+        {
+          "lower": 0.2,
+          "count": 37,
+          "mean_prediction": 0.2763232350403255,
+          "observed_rate": 0.1891891891891892
+        },
+        {
+          "lower": 0.4,
+          "count": 9,
+          "mean_prediction": 0.49167627833967953,
+          "observed_rate": 0.3333333333333333
+        },
+        {
+          "lower": 0.6,
+          "count": 2,
+          "mean_prediction": 0.7050243677803588,
+          "observed_rate": 0.0
+        }
+      ]
+    },
+    "test": {
+      "n": 739,
+      "positives": 58,
+      "pr_auc": 0.145090849315202,
+      "roc_auc": 0.668666767937617,
+      "brier": 0.07553365156264717,
+      "precision_at_k": 0.2,
+      "recall_at_k": 0.08620689655172414,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 693,
+          "mean_prediction": 0.025418439691946862,
+          "observed_rate": 0.0735930735930736
+        },
+        {
+          "lower": 0.2,
+          "count": 35,
+          "mean_prediction": 0.27531168313984344,
+          "observed_rate": 0.11428571428571428
+        },
+        {
+          "lower": 0.4,
+          "count": 6,
+          "mean_prediction": 0.4842884023962439,
+          "observed_rate": 0.3333333333333333
+        },
+        {
+          "lower": 0.6,
+          "count": 5,
+          "mean_prediction": 0.6776658630803123,
+          "observed_rate": 0.2
+        }
+      ]
+    },
+    "logistic_benchmark_test": {
+      "n": 739,
+      "positives": 58,
+      "pr_auc": 0.21901520655446088,
+      "roc_auc": 0.7575573446756798,
+      "brier": 0.06958672841318687,
+      "precision_at_k": 0.32,
+      "recall_at_k": 0.13793103448275862,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 724,
+          "mean_prediction": 0.038829673043221526,
+          "observed_rate": 0.07320441988950276
+        },
+        {
+          "lower": 0.2,
+          "count": 11,
+          "mean_prediction": 0.29858743987208514,
+          "observed_rate": 0.2727272727272727
+        },
+        {
+          "lower": 0.4,
+          "count": 1,
+          "mean_prediction": 0.5156199439432478,
+          "observed_rate": 1.0
+        },
+        {
+          "lower": 0.6,
+          "count": 2,
+          "mean_prediction": 0.667454415796642,
+          "observed_rate": 0.5
+        },
+        {
+          "lower": 0.8,
+          "count": 1,
+          "mean_prediction": 0.8396746893284034,
+          "observed_rate": 0.0
+        }
+      ]
+    }
+  },
+  "90": {
+    "target": "At least one new observable event for a provider with prior events, or at least two new events for a provider without prior events. Events: synthetic code mismatch, configured package conflict, early refill. Not criminal fraud.",
+    "horizon": 90,
+    "features": [
+      "claim_count",
+      "allowed_mean_peer_ratio",
+      "allowed_total_peer_ratio",
+      "volume_change",
+      "member_count",
+      "procedure_count",
+      "observed_events",
+      "event_rate",
+      "paid_total_peer_ratio",
+      "referral_concentration",
+      "known_improper_outcomes"
+    ],
+    "seed": 20261008,
+    "embargo_days": 90,
+    "splits": {
+      "train": {
+        "rows": 1723,
+        "start": "2024-12-30",
+        "end": "2025-06-28",
+        "positive": 143
+      },
+      "validation": {
+        "rows": 739,
+        "start": "2025-10-26",
+        "end": "2025-12-25",
+        "positive": 69
+      },
+      "test": {
+        "rows": 739,
+        "start": "2026-04-24",
+        "end": "2026-06-23",
+        "positive": 88
+      }
+    },
+    "limitations": [
+      "Synthetic event recurrence, not probability of fraud.",
+      "Providers can appear in multiple chronological periods; label windows across split boundaries do not overlap.",
+      "Within-split snapshots overlap; observations are correlated.",
+      "Probabilities are not post-hoc calibrated; inspect held-out calibration bins.",
+      "Horizons are independently fitted and need not be monotonic."
+    ],
+    "validation": {
+      "n": 739,
+      "positives": 69,
+      "pr_auc": 0.19731726319074241,
+      "roc_auc": 0.6728747566515251,
+      "brier": 0.08441776668303419,
+      "precision_at_k": 0.28,
+      "recall_at_k": 0.10144927536231885,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 658,
+          "mean_prediction": 0.04491178281278708,
+          "observed_rate": 0.07446808510638298
+        },
+        {
+          "lower": 0.2,
+          "count": 52,
+          "mean_prediction": 0.28280732502810135,
+          "observed_rate": 0.23076923076923078
+        },
+        {
+          "lower": 0.4,
+          "count": 22,
+          "mean_prediction": 0.47370698700551767,
+          "observed_rate": 0.2727272727272727
+        },
+        {
+          "lower": 0.6,
+          "count": 7,
+          "mean_prediction": 0.6874168323319146,
+          "observed_rate": 0.2857142857142857
+        }
+      ]
+    },
+    "test": {
+      "n": 739,
+      "positives": 88,
+      "pr_auc": 0.2141745908194551,
+      "roc_auc": 0.6640308616115068,
+      "brier": 0.10679441355011274,
+      "precision_at_k": 0.36,
+      "recall_at_k": 0.10227272727272728,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 672,
+          "mean_prediction": 0.04203919602748496,
+          "observed_rate": 0.10119047619047619
+        },
+        {
+          "lower": 0.2,
+          "count": 47,
+          "mean_prediction": 0.28064396959425736,
+          "observed_rate": 0.2978723404255319
+        },
+        {
+          "lower": 0.4,
+          "count": 13,
+          "mean_prediction": 0.487810313537655,
+          "observed_rate": 0.46153846153846156
+        },
+        {
+          "lower": 0.6,
+          "count": 7,
+          "mean_prediction": 0.6803009525061213,
+          "observed_rate": 0.0
+        }
+      ]
+    },
+    "logistic_benchmark_test": {
+      "n": 739,
+      "positives": 88,
+      "pr_auc": 0.29555183995991935,
+      "roc_auc": 0.7275869291998325,
+      "brier": 0.09981420663221312,
+      "precision_at_k": 0.52,
+      "recall_at_k": 0.14772727272727273,
+      "k": 25,
+      "calibration_bins": [
+        {
+          "lower": 0.0,
+          "count": 690,
+          "mean_prediction": 0.057887901653579606,
+          "observed_rate": 0.09855072463768116
+        },
+        {
+          "lower": 0.2,
+          "count": 39,
+          "mean_prediction": 0.24420257925227148,
+          "observed_rate": 0.38461538461538464
+        },
+        {
+          "lower": 0.4,
+          "count": 6,
+          "mean_prediction": 0.4510431904648247,
+          "observed_rate": 0.5
+        },
+        {
+          "lower": 0.6,
+          "count": 3,
+          "mean_prediction": 0.719193358527324,
+          "observed_rate": 0.6666666666666666
+        },
+        {
+          "lower": 0.8,
+          "count": 1,
+          "mean_prediction": 0.9145304454361097,
+          "observed_rate": 0.0
+        }
+      ]
+    }
+  }
+}

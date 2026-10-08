@@ -1,0 +1,5 @@
+export type RecordData=Record<string,any>;
+export interface Page<T=RecordData>{items:T[];total:number;page:number;page_size:number}
+export interface Evidence{evidence_id:string;source_table_or_type:string;source_record_id:string;finding_id:string;evidence_type:string;observed_value:RecordData;reference_value_or_context:RecordData;record_timestamp:string|null;provenance:RecordData;verification_status:string}
+export interface Finding{finding_id:string;finding_type:string;engine:string;entity_type:string;entity_id:string;related_claim_ids:string[];related_provider_ids:string[];related_facility_ids:string[];severity:'LOW'|'MEDIUM'|'HIGH';anomaly_score_or_rule_result:number;rule_or_model_version:string;evidence_ids:string[];explanation:string;data_completeness:number;limitations:string[];detected_at:string;status:string}
+export interface Case extends RecordData{case_id:string;title:string;summary:string;primary_entity:string;case_status:string;severity:string;priority_score:number;potential_financial_exposure:number;findings:Finding[];evidence:Evidence[];claims:RecordData[];allowed_transitions:string[]}
