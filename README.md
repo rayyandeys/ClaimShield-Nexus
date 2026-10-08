@@ -76,6 +76,10 @@ Details, thresholds and limits: [investigation extensions](docs/investigation_ex
 
 The runner is the `stream` compose service (started by `docker compose up -d`; idle until a session starts). Each session uses its own synthetic provider cohort, so replays never touch the original scenario records. Details: [live claims monitoring](docs/LIVE_CLAIMS_MONITORING.md) · demo walkthrough: [live stream demo](docs/LIVE_STREAM_DEMO.md).
 
+## Policy-governed decisions
+
+Case Workspace → **Compliance & decisions** evaluates four investigator actions under the internal demo policy `CLAIMSHIELD-SIU-V1`, using reviewed evidence and never the priority score. It records recommendations with audit events. The SIU queue shows **Decision readiness**. Approvals stay pending because the demo has no authentication. Details: [policy decisions](docs/POLICY_DECISIONS.md).
+
 ## Architecture and stack
 
 ```mermaid

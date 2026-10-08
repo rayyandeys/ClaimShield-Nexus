@@ -186,7 +186,12 @@ def queue(capacity:int=Query(10,ge=1,le=100),status:str='',provider_id:str='',se
     if severity:conditions.append(m.cases.c.severity==severity)
     if q:conditions.append(or_(m.cases.c.title.ilike(f'%{q}%'),m.cases.c.case_id.ilike(f'%{q}%')))
     with engine.connect() as con:
-        result=paginated(con,m.cases,conditions,1,capacity,m.cases.c.priority_score.desc());result['capacity']=capacity;result['policy_version']='siu-1.0';return result
+        result=paginated(con,m.cases,conditions,1,capacity,m.cases.c.priority_score.desc());result['capacity']=capacity;result['policy_version']='siu-1.0'
+        # Decision readiness comes from the policy evaluation and is independent of the SIU priority ordering.
+        from app.services.policy import readiness_many,POLICY_ID
+        ready=readiness_many(con,[r['case_id'] for r in result['items']])
+        for r in result['items']:r['decision_readiness']=ready.get(r['case_id'])
+        result['decision_policy']=POLICY_ID;return result
 
 @app.get(API+'/cases/{case_id}',response_model=ObjectResponse)
 def get_case(case_id:str):
@@ -473,3 +478,33 @@ def stream_subscribe(session_id:str='',after:int=Query(0,ge=0),timeout:int=Query
             if quiet and quiet%15==0:yield ': keep-alive\n\n'
             _time.sleep(1)
     return StreamingResponse(gen(),media_type='text/event-stream',headers={'Cache-Control':'no-cache','X-Accel-Buffering':'no'})
+
+# ---- Policy-governed decisions (internal demo policy CLAIMSHIELD-SIU-V1) ----
+from app.schemas import DecisionInput, DecisionReviewInput
+from app.services import policy
+
+def policy_guarded(fn):
+    try:return fn()
+    except LookupError as e:raise HTTPException(404,str(e))
+    except PermissionError as e:raise HTTPException(403,str(e))
+    except ValueError as e:raise HTTPException(422,str(e))
+
+@app.get(API+'/cases/{case_id}/policy',response_model=ObjectResponse)
+def case_policy(case_id:str):
+    """Actions the policy permits for this case, why, what is missing, and recorded decisions."""
+    with engine.connect() as con:return policy_guarded(lambda:policy.case_policy(con,case_id))
+
+@app.post(API+'/cases/{case_id}/decisions',response_model=ObjectResponse,status_code=201)
+def case_decision(case_id:str,request:DecisionInput):
+    """Records a recommendation after re-evaluating the policy server-side: RECOMMENDED, PENDING_APPROVAL or BLOCKED."""
+    def run():
+        with engine.begin() as con:return policy.submit(con,case_id,request.action,request.justification,request.actor)
+    return policy_guarded(run)
+
+@app.post(API+'/decisions/{decision_id}/approve',response_model=ObjectResponse)
+def decision_approve(decision_id:str,request:DecisionReviewInput):
+    with engine.begin() as con:return policy_guarded(lambda:policy.approve(con,decision_id,request.actor,True))
+
+@app.post(API+'/decisions/{decision_id}/reject',response_model=ObjectResponse)
+def decision_reject(decision_id:str,request:DecisionReviewInput):
+    with engine.begin() as con:return policy_guarded(lambda:policy.approve(con,decision_id,request.actor,False))

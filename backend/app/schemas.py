@@ -95,3 +95,12 @@ class StreamStartInput(Contract):
     max_claims: int | None = Field(default=None, ge=1, le=500)
     seed: int | None = Field(default=None, ge=0, lt=2 ** 31)
     scenario_mode: Literal['mixed_demo', 'normal_only'] = 'mixed_demo'
+
+class DecisionInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    action: Literal['request_more_evidence', 'monitor_provider', 'full_investigation', 'external_referral']
+    justification: str = Field(min_length=10, max_length=2000)
+
+class DecisionReviewInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    notes: str = Field(default='', max_length=2000)
