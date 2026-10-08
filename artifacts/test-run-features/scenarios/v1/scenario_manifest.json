@@ -1,0 +1,72 @@
+{
+  "version": "scenario-pack-v1",
+  "seed": 20261009,
+  "note": "Evaluation labels only. Detection engines never read this file.",
+  "radar": [
+    {
+      "provider_id": "P0252",
+      "expected_flag": true,
+      "scenario": "stolen_id_batch",
+      "why": "270 previously unrelated, dispersed members billed catheter supplies in six weeks without encounters or referrals."
+    },
+    {
+      "provider_id": "P0259",
+      "expected_flag": false,
+      "scenario": "legitimate_practice_closure",
+      "why": "New members are local, referred by the closing practice and have prior same-service history."
+    }
+  ],
+  "phoenix": [
+    {
+      "predecessor_id": "P0251",
+      "successor_id": "P0252",
+      "expected_flag": true,
+      "scenario": "obvious_successor"
+    },
+    {
+      "predecessor_id": "P0253",
+      "successor_id": "P0254",
+      "expected_flag": true,
+      "scenario": "subtle_successor_no_shared_identifiers"
+    },
+    {
+      "predecessor_id": "P0255",
+      "successor_id": "P0256",
+      "expected_flag": false,
+      "scenario": "address_only_lookalike"
+    },
+    {
+      "predecessor_id": "P0257",
+      "successor_id": "P0258",
+      "expected_flag": true,
+      "expected_disposition": "explainable_by_documented_acquisition",
+      "scenario": "legitimate_acquisition"
+    }
+  ],
+  "radar_burst_members": 270,
+  "appended_rows": {
+    "providers": 14,
+    "encounters": 881,
+    "claims": 1151,
+    "claim_lines": 1151,
+    "referrals": 295,
+    "relationships": 15,
+    "investigation_history": 1
+  },
+  "checksums": {
+    "billing_policies.csv": "542e8846bd46e2c5f4f6f2cc1455a22a49e335cada9e9cbcc51513ab7fa38e5f",
+    "claim_estimates.csv": "abc02b9b30fbafdfe19ea2aecdf7ede6fe2652f46a20de0710c99674a697e6b7",
+    "claim_lines.csv": "f15c75f50d0c4be321938a31d0b8ae469607b3790ee6e8c5ee72bd9046c4b45b",
+    "claims.csv": "436deefabf5a171ab8ee72630f935915965a8fd4b71d0af78d663b0f25fab362",
+    "encounters.csv": "d45c3f8b9775d0800e1b620f29c7d02dbc8b6173537f6efac51fcda440efc695",
+    "facilities.csv": "b75556b5b58a95c5cd0c6b24a29a4fa44896df823718352c6b3cc6a63b177c41",
+    "investigation_history.csv": "3904a05eff6f40880867e2d8b9a70b80f359a360194d7a936a21a56ef0c543ec",
+    "member_profiles.csv": "9f21c0c6d9e569a9321afc56240a9667f588b055297182dc069250589be0fa5e",
+    "members.csv": "6f3e8571271565e7d270cb8df0687c7fa0b352e2837399c6551dc9fd52f9f466",
+    "provider_profiles.csv": "b37e59d51c59a0c55c0d60a6096ca89ef1bb206f0063d2ad72b6d8d4f4f78531",
+    "providers.csv": "450a08b1a8cbd8ba1c08df2137d4bb3a0e7c91f4d87315f849a839212d06ff11",
+    "referrals.csv": "999d561fefa48f06e5901a7151f11bc2de4838754e7b8534362b0d9120ff4a82",
+    "relationships.csv": "aa1328a9996fa66b82c711acac11a4c87a55e938ab678189beeabfbaf1eb41b7",
+    "supply_items.csv": "6ece3aed6fcb9f85f3f1e3dea4937ddab995d432e2cb987d42fc60fa97384964"
+  }
+}

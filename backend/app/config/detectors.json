@@ -1,0 +1,45 @@
+{
+  "member_radar": {
+    "version": "member-radar-1.0",
+    "recent_days": 90,
+    "baseline_days": 365,
+    "first_contact_days": 30,
+    "duplicate_window_days": 7,
+    "candidate_min_new_members": 10,
+    "dispersion_peer_min_new_members": 5,
+    "member_finding_min_score": 1.5,
+    "min_scale": {"first_contact_burst": 1.0, "care_history_mismatch": 0.1, "geographic_jump_km": 50.0, "missing_encounter_rate": 0.1, "cross_provider_duplicates": 1.0},
+    "checks": {
+      "new_members": {"op": ">=", "threshold": 25, "required": true},
+      "growth_ratio": {"op": ">=", "threshold": 5.0, "required": true},
+      "share_without_prior_relationship": {"op": ">=", "threshold": 0.8, "required": true},
+      "share_with_prior_care_context": {"op": "<=", "threshold": 0.2, "required": true},
+      "geographic_dispersion_percentile": {"op": ">", "threshold": 0.75, "required": false}
+    },
+    "notes": [
+      "Prototype heuristics on synthetic data, not validated thresholds.",
+      "Geographic dispersion is corroborating, not required: in the base synthetic dataset only about 10% of claims are in the member's home state, so care location is independent of residence and dispersion does not separate providers. It is always computed and displayed.",
+      "Prior care context = a prior claim for the same service code by any provider, or a referral to this provider dated on or before the first recent claim. Diagnosis data is not available."
+    ]
+  },
+  "phoenix": {
+    "version": "phoenix-1.0",
+    "inactive_statuses": ["suspended", "revoked", "closed"],
+    "eligibility_days": 180,
+    "predecessor_window_days": 180,
+    "successor_window_days": 90,
+    "min_successor_claims": 5,
+    "weights": {"patient_overlap": 0.35, "shared_identifiers": 0.25, "billing_similarity": 0.20, "referral_overlap": 0.15, "timing": 0.05},
+    "identifier_weights": {"practice_owner_id": 0.35, "bank_token": 0.35, "phone": 0.20, "address": 0.10},
+    "address_similarity_threshold": 0.9,
+    "score_threshold": 0.55,
+    "support_threshold": 0.30,
+    "min_supporting_components": 2,
+    "behavioral_components": ["patient_overlap", "billing_similarity", "referral_overlap"],
+    "notes": [
+      "Weights are prototype heuristics; the result is a similarity score, not a probability of misconduct.",
+      "Timing is excluded from the supporting-component count because every eligible pair is close in time by construction.",
+      "Missing identifiers are never treated as matches; unavailable components contribute zero and are disclosed."
+    ]
+  }
+}

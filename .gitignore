@@ -13,3 +13,4 @@ artifacts/uploads/*
 
 
 *node_modules/
+artifacts/scenarios/

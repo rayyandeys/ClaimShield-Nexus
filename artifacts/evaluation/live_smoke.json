@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/dataset/summary",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/claims?page_size=2",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/claims/C0000328",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/siu/queue?capacity=3",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/cases/CASE-27cd5d9b606a132d854e",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/cases/CASE-27cd5d9b606a132d854e/timeline",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/network/P0252",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/providers/P0252/forecast",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/models/status",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/evaluation/summary",
+      "status": 200
+    },
+    {
+      "path": "/openapi.json",
+      "status": 200
+    }
+  ],
+  "claim_count": 21151,
+  "case_id": "CASE-27cd5d9b606a132d854e",
+  "note": "Read-only live API smoke. Mutating end-to-end review flow is exercised in the isolated integration suite."
+}

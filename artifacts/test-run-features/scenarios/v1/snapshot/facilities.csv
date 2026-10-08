@@ -1,0 +1,61 @@
+facility_id,facility_name,facility_type,state,city,owner_id,complexity_mix
+F0001,Synthetic Hospital 01,hospital,WA,Seattle,O001,specialty
+F0002,Synthetic Hospital 02,hospital,GA,Atlanta,O002,mixed
+F0003,Synthetic Hospital 03,hospital,OH,Columbus,O003,mixed
+F0004,Synthetic Hospital 04,hospital,IL,Chicago,O004,specialty
+F0005,Synthetic Hospital 05,hospital,GA,Atlanta,O005,mixed
+F0006,Synthetic Hospital 06,hospital,CA,Los Angeles,O006,specialty
+F0007,Synthetic Hospital 07,hospital,NY,Buffalo,O007,specialty
+F0008,Synthetic Hospital 08,hospital,IL,Chicago,O008,routine
+F0009,Synthetic Hospital 09,hospital,NC,Raleigh,O009,specialty
+F0010,Synthetic Hospital 10,hospital,CA,Los Angeles,O010,routine
+F0011,Synthetic Hospital 11,hospital,WA,Seattle,O011,specialty
+F0012,Synthetic Hospital 12,hospital,GA,Atlanta,O012,specialty
+F0013,Synthetic Hospital 13,hospital,CA,Los Angeles,O013,specialty
+F0014,Synthetic Hospital 14,hospital,FL,Orlando,O014,mixed
+F0015,Synthetic Clinic 15,clinic,GA,Atlanta,O015,specialty
+F0016,Synthetic Clinic 16,clinic,OH,Columbus,O016,mixed
+F0017,Synthetic Clinic 17,clinic,NY,Buffalo,O017,routine
+F0018,Synthetic Clinic 18,clinic,IL,Chicago,O018,mixed
+F0019,Synthetic Clinic 19,clinic,AZ,Phoenix,O001,mixed
+F0020,Synthetic Clinic 20,clinic,NY,Buffalo,O002,specialty
+F0021,Synthetic Clinic 21,clinic,FL,Orlando,O003,routine
+F0022,Synthetic Clinic 22,clinic,AZ,Phoenix,O004,routine
+F0023,Synthetic Clinic 23,clinic,TX,Houston,O005,specialty
+F0024,Synthetic Clinic 24,clinic,FL,Orlando,O006,specialty
+F0025,Synthetic Clinic 25,clinic,NC,Raleigh,O007,mixed
+F0026,Synthetic Clinic 26,clinic,OH,Columbus,O008,mixed
+F0027,Synthetic Clinic 27,clinic,FL,Orlando,O009,specialty
+F0028,Synthetic Clinic 28,clinic,WA,Seattle,O010,mixed
+F0029,Synthetic Laboratory 29,laboratory,AZ,Phoenix,O011,mixed
+F0030,Synthetic Laboratory 30,laboratory,NY,Buffalo,O012,mixed
+F0031,Synthetic Laboratory 31,laboratory,WA,Seattle,O013,routine
+F0032,Synthetic Laboratory 32,laboratory,NC,Raleigh,O014,routine
+F0033,Synthetic Laboratory 33,laboratory,OH,Columbus,O015,routine
+F0034,Synthetic Laboratory 34,laboratory,IL,Chicago,O016,routine
+F0035,Synthetic Laboratory 35,laboratory,NC,Raleigh,O017,mixed
+F0036,Synthetic Laboratory 36,laboratory,OH,Columbus,O018,routine
+F0037,Synthetic Pharmacy 37,pharmacy,NY,Buffalo,O001,routine
+F0038,Synthetic Pharmacy 38,pharmacy,IL,Chicago,O002,specialty
+F0039,Synthetic Pharmacy 39,pharmacy,NC,Raleigh,O003,specialty
+F0040,Synthetic Pharmacy 40,pharmacy,CA,Los Angeles,O004,specialty
+F0041,Synthetic Pharmacy 41,pharmacy,WA,Seattle,O005,specialty
+F0042,Synthetic Ambulance Base 42,ambulance_base,GA,Atlanta,O006,specialty
+F0043,Synthetic Ambulance Base 43,ambulance_base,CA,Los Angeles,O007,mixed
+F0044,Synthetic Ambulance Base 44,ambulance_base,IL,Chicago,O008,mixed
+F0045,Synthetic Ambulance Base 45,ambulance_base,WA,Seattle,O009,specialty
+F0046,Synthetic Behavioral Health Center 46,behavioral_health_center,OH,Columbus,O010,mixed
+F0047,Synthetic Behavioral Health Center 47,behavioral_health_center,TX,Houston,O011,specialty
+F0048,Synthetic Behavioral Health Center 48,behavioral_health_center,GA,Atlanta,O012,routine
+F0049,Synthetic Behavioral Health Center 49,behavioral_health_center,OH,Columbus,O013,routine
+F0050,Synthetic Behavioral Health Center 50,behavioral_health_center,NY,Buffalo,O014,specialty
+F0051,Synthetic Home Health Agency 51,home_health_agency,FL,Orlando,O015,mixed
+F0052,Synthetic Home Health Agency 52,home_health_agency,GA,Atlanta,O016,mixed
+F0053,Synthetic Home Health Agency 53,home_health_agency,TX,Houston,O017,specialty
+F0054,Synthetic Home Health Agency 54,home_health_agency,NY,Buffalo,O018,routine
+F0055,Synthetic Home Health Agency 55,home_health_agency,WA,Seattle,O001,mixed
+F0056,Synthetic Dme Supplier 56,dme_supplier,CA,Los Angeles,O002,specialty
+F0057,Synthetic Dme Supplier 57,dme_supplier,TX,Houston,O003,mixed
+F0058,Synthetic Dme Supplier 58,dme_supplier,WA,Seattle,O004,routine
+F0059,Synthetic Dme Supplier 59,dme_supplier,OH,Columbus,O005,specialty
+F0060,Synthetic Dme Supplier 60,dme_supplier,TX,Houston,O006,mixed

@@ -107,9 +107,23 @@ def test_groq_controlled_integration(client,monkeypatch,mode):
         return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content))])
     mock=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
     result=compose(cid,client=mock)
-    assert result['mode']==('groq' if mode=='valid' else 'deterministic')
+    # An invented citation is discarded while the remaining verified facts are kept.
+    assert result['mode']==('groq' if mode in {'valid','invented'} else 'deterministic')
     assert 'FAKE-EVIDENCE' not in json.dumps(result)
     CONTROLLED_RESULTS.append({'input':mode,'output_mode':result['mode'],'invented_evidence_present':'FAKE-EVIDENCE' in json.dumps(result)})
+
+def test_groq_failure_not_cached_and_retried(client):
+    cid=client.get('/api/v1/siu/queue?capacity=1').json()['items'][0]['case_id']
+    with engine.begin() as con:
+        con.execute(delete(m.briefs).where(m.briefs.c.case_id==cid))
+        case=case_detail(con,cid)
+    valid=fallback(case).model_dump_json()
+    def failing(**kwargs):raise httpx.ReadTimeout('controlled timeout')
+    def succeeding(**kwargs):return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=valid))])
+    mock=lambda create:SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    assert compose(cid,client=mock(failing))['mode']=='deterministic'
+    assert compose(cid,client=mock(succeeding))['mode']=='groq'
+    assert compose(cid,client=mock(failing))['mode']=='groq'
 
 def test_job_claim_and_restart_lease(client):
     from app.worker import enqueue,claim_job
@@ -121,5 +135,5 @@ def test_job_claim_and_restart_lease(client):
     with engine.begin() as con:con.execute(update(m.jobs).where(m.jobs.c.job_id==job['job_id']).values(status='COMPLETED',completed_at=now()))
 
 def test_write_controlled_verification_report(client):
-    report={'status':'CALCULATED','controlled_responses':len(CONTROLLED_RESULTS),'valid_structured_response_accepted':sum(r['input']=='valid' and r['output_mode']=='groq' for r in CONTROLLED_RESULTS),'invalid_or_unavailable_responses_fell_back':sum(r['input']!='valid' and r['output_mode']=='deterministic' for r in CONTROLLED_RESULTS),'invented_evidence_accepted':sum(r['invented_evidence_present'] for r in CONTROLLED_RESULTS),'observations':CONTROLLED_RESULTS,'limitation':'Controlled fixtures exercise structural and source-value verification; this is not a real-world factuality benchmark or a live Groq test.'}
+    report={'status':'CALCULATED','controlled_responses':len(CONTROLLED_RESULTS),'valid_structured_response_accepted':sum(r['input']=='valid' and r['output_mode']=='groq' for r in CONTROLLED_RESULTS),'invalid_or_unavailable_responses_fell_back':sum(r['input'] not in {'valid','invented'} and r['output_mode']=='deterministic' for r in CONTROLLED_RESULTS),'invented_evidence_accepted':sum(r['invented_evidence_present'] for r in CONTROLLED_RESULTS),'observations':CONTROLLED_RESULTS,'limitation':'Controlled fixtures exercise structural and source-value verification; this is not a real-world factuality benchmark or a live Groq test.'}
     (settings.artifact_dir/'evaluation/brief_test_report.json').write_text(json.dumps(report,indent=2))

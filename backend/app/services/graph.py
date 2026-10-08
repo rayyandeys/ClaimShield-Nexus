@@ -1,4 +1,5 @@
 from collections import defaultdict, Counter
+from datetime import date
 import networkx as nx
 from app.core import clean
 from app.services.detection import make_finding
@@ -20,6 +21,10 @@ def build_graph(data, cutoff=None):
     for r in data['referrals']:edge(r['source_provider_id'],r['destination_provider_id'],r['referral_id'],'referral','referrals',r['referral_id'],r['referral_date'])
     for r in data['claims']:
         for field,typ in [('provider_id','billed_by'),('member_id','service_for'),('facility_id','service_at')]:edge(r['claim_id'],r[field],r['claim_id']+'-'+typ,typ,'claims',r['claim_id'],r['service_date'])
+    # Flagged Phoenix links are algorithmic similarity edges, labeled as such; they are not recorded relationships.
+    for r in data.get('successor_links',[]):
+        edge(r['predecessor_id'],r['successor_id'],r['link_id'],'possible_successor','provider_successors',r['link_id'],r['details'].get('successor_start') and date.fromisoformat(r['details']['successor_start']),verification='algorithmic_similarity')
+        if graph.has_edge(r['predecessor_id'],r['successor_id'],r['link_id']):graph.edges[r['predecessor_id'],r['successor_id'],r['link_id']].update(score=r['score'],components=r['components'],finding_id=r['finding_id'])
     return graph
 
 def graph_analysis(data,independent):
@@ -40,8 +45,14 @@ def graph_analysis(data,independent):
     for f in data['facilities']:owners[f['owner_id']].append(f['facility_id'])
     return output,{'nodes':graph.number_of_nodes(),'edges':graph.number_of_edges(),'connected_components':nx.number_connected_components(graph),'largest_component':max((len(c) for c in nx.connected_components(graph)),default=0),'shared_ownership':{k:v for k,v in owners.items() if len(v)>1},'degree_statistics':{'maximum':max(dict(graph.degree()).values(),default=0)},'limitation':'Connected components describe relationships only; they do not establish misconduct.'}
 
-def bounded_network(data,entity_id,limit=80,node_types=None,relationship_types=None,cutoff=None):
-    graph=build_graph(data,cutoff)
+_cache={'key':None,'graph':None}
+def cached_graph(key,load):
+    """Full (no as-of cutoff) graph reused until the data version key changes; as-of views are always rebuilt."""
+    if _cache['key']!=key:_cache.update(key=key,graph=build_graph(load()))
+    return _cache['graph']
+
+def bounded_network(data,entity_id,limit=80,node_types=None,relationship_types=None,cutoff=None,graph=None):
+    graph=graph if graph is not None and cutoff is None else build_graph(data,cutoff)
     if entity_id not in graph:return None
     # Prioritize the provider/facility/ownership layer before claims and members.
     selected={entity_id};frontier=[entity_id]

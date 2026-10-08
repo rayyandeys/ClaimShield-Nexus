@@ -55,6 +55,21 @@ Do not remove the database volume unless you intend to discard all imported data
 - Groq evidence investigator, challenger and brief synthesis with strict JSON schema, exact local source-value verification, bounded output, timeout/retries, caching and offline fallback.
 - Connected React screens for overview, ingestion, claims, SupplyTrace, network, forecasts, queue, case review and evaluation.
 
+## Investigation extensions
+
+- **Next-Best-Evidence** (Case Workspace → *Next evidence*, SIU queue card): recommends the three evidence requests most likely to change a capacity-limited review decision, using the production SIU scorer for every hypothetical. Read-only *what-if* simulations, plus a full evidence-request lifecycle with reviewed outcomes.
+- **Compromised Member ID Radar** (*Member radar* page): five interpretable member signals and provider-level suspicious new-member batches, with a clearly simulated member-confirmation loop and spillover leads.
+- **Phoenix Provider Detector**: possible successors of suspended, revoked or closed providers, scored on five transparent components and shown as dashed `possible_successor` edges in Nexus network.
+
+These need the scenario pack (synthetic profiles and scenarios appended to the original snapshot):
+
+```powershell
+docker compose exec backend python -m app.cli augment
+docker compose exec backend python -m app.cli analyze
+```
+
+Details, thresholds and limits: [investigation extensions](docs/investigation_extensions.md).
+
 ## Architecture and stack
 
 ```mermaid
@@ -158,7 +173,8 @@ The initial actual run produced 1,510 findings and 894 cases. On 7,394 held-out 
 ```powershell
 # Unit suite
 docker compose run --rm backend pytest -q -m "not integration"
-# Complete isolated integration suite, including training and reassessment
+# Complete isolated integration suites (claimshield_test, plus a disposable
+# claimshield_features_test for the scenario pack and investigation extensions)
 ./scripts/test.ps1
 # Frontend component tests
 docker compose exec frontend npm test
@@ -181,5 +197,3 @@ docker compose exec backend python -m app.smoke
 No production authentication, clinical record system, real billing policy feed, real patient data, prospective validation or automatic adjudication is included. Shared-ownership analysis is contextual; connections never establish collusion. Supply peers are retrospective snapshot statistics, and forecast observations within a split can overlap. Upload is a complete CSV snapshot rather than an arbitrary schema mapper. Source records are immutable and analysis reruns are stable for the same snapshot; changing the source population can change consolidation boundaries and needs a versioned migration strategy before production use.
 
 The existing source has no documented corrected claims. The demo resolves a narrow estimate-variance question using its existing estimate/final-line records while preserving other suspicious findings. Clinical necessity remains an open review question. Groq failure paths are tested with controlled mocks; a live response is only verified when a key is provided and an explicit live test succeeds.
-#   C l a i m S h i e l d - N e x u s  
- 

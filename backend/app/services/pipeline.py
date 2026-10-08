@@ -4,17 +4,40 @@ import logging
 import time
 from datetime import timedelta
 from uuid import uuid4
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.dialects.postgresql import insert
 from app.core import engine, settings, clean, now
-from app.models import batches, findings, evidence, finding_claims, models, cases, case_findings
+from sqlalchemy import delete
+from app.models import batches, findings, evidence, finding_claims, models, cases, case_findings, member_risk, radar_batches, radar_batch_members, successors
 from app.services.repository import load_data
 from app.services.detection import rules, supply_analysis
 from app.services.graph import graph_analysis
+from app.services import radar, phoenix
 from app.services.ml import train_anomaly, forecast_training
 from app.services.cases import consolidate
 
 log=logging.getLogger(__name__)
+
+def persist_detector_tables(con,batch_id,member_rows,batch_rows,batch_member_rows,link_rows):
+    """Radar tables are derived snapshots and are replaced; successor links are upserted by stable pair ID."""
+    for start in range(0,len(member_rows),1000):
+        stmt=insert(member_risk).values([clean(dict(r,batch_id=batch_id)) for r in member_rows[start:start+1000]])
+        con.execute(stmt.on_conflict_do_update(index_elements=['member_id'],set_={k:stmt.excluded[k] for k in ['score','as_of','signals','detector_version','batch_id']}))
+    con.execute(delete(radar_batch_members));con.execute(delete(radar_batches))
+    if batch_rows:con.execute(radar_batches.insert(),[clean(dict(r,batch_id=batch_id)) for r in batch_rows])
+    for start in range(0,len(batch_member_rows),1000):con.execute(radar_batch_members.insert(),[clean(r) for r in batch_member_rows[start:start+1000]])
+    for r in link_rows:
+        stmt=insert(successors).values(**clean(dict(r,batch_id=batch_id)))
+        con.execute(stmt.on_conflict_do_update(index_elements=['link_id'],set_={**{k:stmt.excluded[k] for k in ['score','flagged','components','details','detector_version','batch_id']},'finding_id':func.coalesce(stmt.excluded.finding_id,successors.c.finding_id),'updated_at':func.now()}))
+
+def scenario_evaluation(batch_rows,link_rows):
+    """Compares detector output with the separate scenario manifest (labels never reach detection)."""
+    path=settings.artifact_dir/'scenarios/v1/scenario_manifest.json'
+    if not path.exists():return {'status':'NOT_AVAILABLE','reason':'Scenario pack manifest not found; run the augment command to evaluate scenarios.'}
+    manifest=json.loads(path.read_text());qualified={b['provider_id'] for b in batch_rows if b['qualified']};flagged={(l['predecessor_id'],l['successor_id']) for l in link_rows if l['flagged']}
+    radar_rows=[dict(s,detected=s['provider_id'] in qualified,correct=(s['provider_id'] in qualified)==s['expected_flag']) for s in manifest['radar']]
+    phoenix_rows=[dict(s,detected=(s['predecessor_id'],s['successor_id']) in flagged,correct=((s['predecessor_id'],s['successor_id']) in flagged)==s['expected_flag']) for s in manifest['phoenix']]
+    return {'status':'CALCULATED','version':manifest['version'],'radar':radar_rows,'phoenix':phoenix_rows,'unexpected_radar_flags':sorted(qualified-{s['provider_id'] for s in manifest['radar']}),'unexpected_phoenix_flags':sorted(f'{a}->{b}' for a,b in flagged-{(s['predecessor_id'],s['successor_id']) for s in manifest['phoenix']}),'note':'Scenario fixtures are constructed demonstrations; agreement here is not evidence of real-world detection performance.'}
 
 def evaluate(data,outputs,elapsed):
     path=settings.data_dir/'evaluation/ground_truth.csv'
@@ -66,6 +89,8 @@ def analyze(progress=lambda v:None,train=True):
                 with engine.begin() as con:con.execute(insert(models).values(model_version=f'FAILED-{name}-{batch_id}',model_type=name,status='FAILED',metadata=con_metadata))
         progress(65)
         graph_findings,graph_summary=graph_analysis(data,outputs);outputs+=graph_findings
+        radar_findings,member_rows,batch_rows,batch_member_rows=radar.analyze(data);outputs+=radar_findings
+        phoenix_findings,link_rows=phoenix.analyze(data);outputs+=phoenix_findings;progress(75)
         # Idempotent natural finding/evidence IDs preserve previous reviewer resolutions.
         outputs=list({f.finding_id:(f,ev) for f,ev in outputs}.values())
         with engine.begin() as con:
@@ -77,10 +102,13 @@ def analyze(progress=lambda v:None,train=True):
                 con.execute(insert(findings).values(**row).on_conflict_do_nothing())
                 for cid in f.related_claim_ids:con.execute(insert(finding_claims).values(finding_id=f.finding_id,claim_id=cid).on_conflict_do_nothing())
                 for e in ev:con.execute(insert(evidence).values(**e.model_dump()).on_conflict_do_nothing())
+            persist_detector_tables(con,batch_id,member_rows,batch_rows,batch_member_rows,link_rows)
             case_count=consolidate(con,outputs,data)
         progress(90)
         evaluation=evaluate(data,outputs,time.monotonic()-start)
-        report={'claims_processed':len(data['claims']),'findings':len(outputs),'cases':case_count,'graph':graph_summary,'evaluation':evaluation,'elapsed_seconds':round(time.monotonic()-start,2)}
+        evaluation['scenarios']=scenario_evaluation(batch_rows,link_rows)
+        settings.artifact_dir.joinpath('evaluation/scenario_report.json').write_text(json.dumps(clean(evaluation['scenarios']),indent=2))
+        report={'claims_processed':len(data['claims']),'findings':len(outputs),'cases':case_count,'graph':graph_summary,'member_radar':{'candidates':len(batch_rows),'qualified_batches':sum(b['qualified'] for b in batch_rows),'member_findings':sum(f.finding_type=='member_id_possibly_compromised' for f,_ in radar_findings),'profiles_available':bool(data.get('member_profiles'))},'phoenix':{'evaluated_pairs':len(link_rows),'flagged':sum(l['flagged'] for l in link_rows),'profiles_available':bool(data.get('provider_profiles'))},'evaluation':evaluation,'elapsed_seconds':round(time.monotonic()-start,2)}
         with engine.begin() as con:con.execute(update(batches).where(batches.c.batch_id==batch_id).values(status='COMPLETED',progress=100,report=clean(report),completed_at=now()))
         return {'batch_id':batch_id,**report}
     except Exception as exc:

@@ -48,6 +48,35 @@ class ResolutionInput(Contract):
     explanation: str = Field(min_length=10, max_length=4000)
     verified_evidence_ids: list[str] = Field(min_length=1, max_length=30)
 
+class EvidenceRequestInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    finding_id: str = Field(min_length=1, max_length=100)
+    evidence_type: str = Field(min_length=1, max_length=60)
+    justification: str | None = Field(default=None, max_length=1000)
+    claim_id: str | None = Field(default=None, max_length=100)
+
+class EvidenceOutcomeInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    status: Literal['RECEIVED', 'VERIFIED_EXPLAINS', 'VERIFIED_SUPPORTS', 'INCONCLUSIVE', 'WITHDRAWN']
+    notes: str = Field(default='', max_length=4000)
+
+class SimulationInput(Contract):
+    finding_id: str = Field(min_length=1, max_length=100)
+    outcome: Literal['explains', 'supports']
+    capacity: int = Field(default=10, ge=1, le=100)
+    evidence_type: str | None = Field(default=None, max_length=60)
+
+class ConfirmationInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    claim_id: str = Field(min_length=1, max_length=100)
+    finding_id: str | None = Field(default=None, max_length=100)
+    member_id: str | None = Field(default=None, max_length=100)
+
+class ConfirmationResponseInput(Contract):
+    actor: str = Field(default='Demo Analyst · Team CIPHER', min_length=2, max_length=100)
+    response: Literal['YES', 'NO', 'NOT_SURE']
+    notes: str | None = Field(default=None, max_length=1000)
+
 class JobRequest(Contract):
     kind: Literal['import', 'analysis', 'train', 'all'] = 'all'
 

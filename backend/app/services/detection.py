@@ -11,7 +11,7 @@ VERSION = 'synthetic-policy-1.0'
 def stable_id(prefix, *parts):
     return prefix + hashlib.sha256('|'.join(str(p) for p in parts).encode()).hexdigest()[:20]
 
-def make_finding(kind, claims, sources, explanation, severity='MEDIUM', score=1., engine='rules', context=None, limitations=None, entity=None, version=VERSION, completeness=1.):
+def make_finding(kind, claims, sources, explanation, severity='MEDIUM', score=1., engine='rules', context=None, limitations=None, entity=None, version=VERSION, completeness=1., entity_type=None):
     claims = sorted(claims, key=lambda c:c['claim_id'])
     entity_id = entity or claims[0]['claim_id']
     fid = stable_id('F-', engine, kind, entity_id, *[r[1] for r in sources])
@@ -20,7 +20,7 @@ def make_finding(kind, claims, sources, explanation, severity='MEDIUM', score=1.
         timestamp = record.get('service_start') or record.get('referral_date') or record.get('effective_from')
         if timestamp and not isinstance(timestamp, datetime): timestamp = datetime.combine(timestamp, datetime.min.time(), tzinfo=timezone.utc)
         evidence.append(Evidence(evidence_id=stable_id('E-', fid, table, source_id), finding_id=fid, source_table_or_type=table, source_record_id=source_id, evidence_type=kind, observed_value=clean(record), reference_value_or_context=clean(context or {}), record_timestamp=timestamp, provenance={'source_file':record.get('source_file',f'{table}.csv'), 'source_batch_id':record.get('source_batch_id'), 'synthetic':True}))
-    finding = Finding(finding_id=fid, finding_type=kind, engine=engine, entity_type='provider' if entity else 'claim', entity_id=entity_id, related_claim_ids=[c['claim_id'] for c in claims], related_provider_ids=sorted({c['provider_id'] for c in claims}), related_facility_ids=sorted({c['facility_id'] for c in claims}), severity=severity, anomaly_score_or_rule_result=float(score), rule_or_model_version=version, evidence_ids=[e.evidence_id for e in evidence], explanation=explanation, data_completeness=completeness, limitations=limitations or ['Synthetic screening indicator; human verification required.'], detected_at=datetime.now(timezone.utc), status='ACTIVE')
+    finding = Finding(finding_id=fid, finding_type=kind, engine=engine, entity_type=entity_type or ('provider' if entity else 'claim'), entity_id=entity_id, related_claim_ids=[c['claim_id'] for c in claims], related_provider_ids=sorted({c['provider_id'] for c in claims}), related_facility_ids=sorted({c['facility_id'] for c in claims}), severity=severity, anomaly_score_or_rule_result=float(score), rule_or_model_version=version, evidence_ids=[e.evidence_id for e in evidence], explanation=explanation, data_completeness=completeness, limitations=limitations or ['Synthetic screening indicator; human verification required.'], detected_at=datetime.now(timezone.utc), status='ACTIVE')
     return finding, evidence
 
 def policy_for(data, rule, claim):

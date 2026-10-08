@@ -38,7 +38,8 @@ def feature_frame(data, cutoff, events=None):
     recent['known_paid']=recent.apply(lambda r: float(r.paid_amount_usd) if r.payment_date and r.payment_date<=cutoff else 0.,axis=1)
     for col in ['allowed_amount_usd']: recent[col]=recent[col].astype(float)
     grouped=recent.groupby('provider_id').agg(claim_count=('claim_id','count'),allowed_mean=('allowed_amount_usd','mean'),allowed_total=('allowed_amount_usd','sum'),member_count=('member_id','nunique'),procedure_count=('primary_code','nunique'),observed_events=('event','sum'),paid_total=('known_paid','sum'))
-    providers=pd.DataFrame(data['providers']).set_index('provider_id')
+    # Only providers active by the cutoff are peers; not-yet-existing providers must not dilute specialty medians.
+    providers=pd.DataFrame([p for p in data['providers'] if not p.get('active_from') or p['active_from']<=cutoff]).set_index('provider_id')
     f=providers[['specialty']].join(grouped).fillna(0)
     f['previous_count']=previous.groupby('provider_id').size().reindex(f.index).fillna(0)
     f['volume_change']=(f.claim_count-f.previous_count)/(f.previous_count+1)

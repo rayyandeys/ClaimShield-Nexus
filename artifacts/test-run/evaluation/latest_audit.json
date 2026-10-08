@@ -915,51 +915,51 @@
   "sources": {
     "members": {
       "file": "members.csv",
-      "sha256": "6f3e8571271565e7d270cb8df0687c7fa0b352e2837399c6551dc9fd52f9f466"
+      "sha256": "1acedc4444e116fb6b87f01a1df6f8f3fbd74f5e0a87fa29df6b8b30d59c6619"
     },
     "facilities": {
       "file": "facilities.csv",
-      "sha256": "b75556b5b58a95c5cd0c6b24a29a4fa44896df823718352c6b3cc6a63b177c41"
+      "sha256": "f7ff85ad10e489d9eb3c7e8ebe13ef1082221a434edfa8d3e1498522c7c87861"
     },
     "providers": {
       "file": "providers.csv",
-      "sha256": "8ea97fd2c35dd81a68dd570edea93883f069ace0abc905436330bbccec7be1d0"
+      "sha256": "0c5afec5078ef05deaa75e1236db8a6186955c74e1db8f31825719cc1248f281"
     },
     "encounters": {
       "file": "encounters.csv",
-      "sha256": "05b7ac2b8b037ab58c62a2eed3f5c2e2cdd059140eec986372584d91cbcc653f"
+      "sha256": "b0f835ac188d1bd5fea2120f7c7648fe7d70b56b342c314e76e90264dc2ea707"
     },
     "claims": {
       "file": "claims.csv",
-      "sha256": "c2fa23afa449aa4a83b05819aa7f533974dba39e4e67f24509064f57dbb19e3e"
+      "sha256": "f0d6bca28a75513f2167ecb1a009b25887437af193a916b945cc24f8b9a15e6c"
     },
     "claim_lines": {
       "file": "claim_lines.csv",
-      "sha256": "1f663a73f738ce4a87dcba03deb558df47c850b5b92706d92a7e0e5893e86af7"
+      "sha256": "b52524e8ac7596855d90441a19d947ab9cee89b748c6fe1eece088e79718f85c"
     },
     "supply_items": {
       "file": "supply_items.csv",
-      "sha256": "6ece3aed6fcb9f85f3f1e3dea4937ddab995d432e2cb987d42fc60fa97384964"
+      "sha256": "eae133abdab900337c44f23576b51877557f945c2af07b7fff008270b6c66c96"
     },
     "claim_estimates": {
       "file": "claim_estimates.csv",
-      "sha256": "abc02b9b30fbafdfe19ea2aecdf7ede6fe2652f46a20de0710c99674a697e6b7"
+      "sha256": "be6ad7e150cb5b1fdfca788aba10db68c4b4f71ddb551302b15c74bed3506c9f"
     },
     "referrals": {
       "file": "referrals.csv",
-      "sha256": "67961adc71491b046c457e1e285f231ea2e360270699a2409ff70fe3b16cf8a4"
+      "sha256": "664eafe237f305713e422bbaa249e15e8285f6e9f168280416788094b294dde9"
     },
     "relationships": {
       "file": "relationships.csv",
-      "sha256": "7c23e1203f47896a2cedacc74eeeee95b2b9ebbce4da53c69d824d5225567c5e"
+      "sha256": "002335d9fcf1a28c3ff62555179e5ed1ec9f206d2154a77f3b2b8d4f621a0ad1"
     },
     "investigation_history": {
       "file": "investigation_history.csv",
-      "sha256": "4fd483cd34711fb76e6af9d6f29d065012b22706b16691b2aa9648b4561f9ea5"
+      "sha256": "841c735f8c3b14c0a1597268d15d2fb1da26401b72ee2ded82b94d97cb62034b"
     },
     "billing_policies": {
       "file": "billing_policies.csv",
-      "sha256": "542e8846bd46e2c5f4f6f2cc1455a22a49e335cada9e9cbcc51513ab7fa38e5f"
+      "sha256": "c8b32ff09d90d1b1b30875e3864d52272622552f611ef94ab5b3ed2f29ae48c8"
     }
   },
   "counts": {
@@ -974,7 +974,9 @@
     "referrals": 2000,
     "relationships": 410,
     "investigation_history": 150,
-    "billing_policies": 10
+    "billing_policies": 10,
+    "provider_profiles": 0,
+    "member_profiles": 0
   },
   "date_range": [
     "2024-10-01",
@@ -987,7 +989,7 @@
     "Ground truth is excluded from operational ingestion."
   ],
   "synthetic": true,
-  "reused_batch_id": "IMP-d22bf29a8d07403a",
+  "reused_batch_id": "IMP-072c2d1766094096",
   "inserted_counts": {
     "members": 0,
     "facilities": 0,
@@ -1000,6 +1002,8 @@
     "referrals": 0,
     "relationships": 0,
     "investigation_history": 0,
-    "billing_policies": 0
+    "billing_policies": 0,
+    "provider_profiles": 0,
+    "member_profiles": 0
   }
 }

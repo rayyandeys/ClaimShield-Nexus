@@ -11,7 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from pydantic import BaseModel, Field, ValidationError
 from app.core import engine, settings, now, clean
-from app.models import SPECS, NULLABLE, INTS, DATES, FK, tables, batches, entities
+from app.models import SPECS, OPTIONAL_SPECS, NULLABLE, INTS, FLOATS, DATES, FK, tables, batches, entities
 
 class FinancialRow(BaseModel):
     billed_amount_usd: Decimal = Field(ge=0)
@@ -23,10 +23,11 @@ def audit_directory(directory: Path):
     data, issues, sources = {}, [], {}
     def issue(table, row, field, message, severity='ERROR'):
         issues.append(dict(table=table, record_id=row, field=field, message=message, severity=severity))
-    for name, spec in SPECS.items():
+    for name, spec in {**SPECS, **OPTIONAL_SPECS}.items():
         path = directory / f'{name}.csv'
         if not path.exists():
-            issue(name, '', '', 'Required reference file is missing'); data[name] = []; continue
+            if name in SPECS: issue(name, '', '', 'Required reference file is missing')
+            data[name] = []; continue
         sources[name] = {'file': path.name, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
         with path.open(newline='', encoding='utf-8-sig') as file:
             reader = csv.DictReader(file)
@@ -51,6 +52,9 @@ def audit_directory(directory: Path):
                         if col in INTS:
                             v = int(v)
                             if v < 0: raise ValueError('Negative quantity or duration')
+                        elif col in FLOATS:
+                            v = float(v)
+                            if v != v or abs(v) > 180: raise ValueError('Invalid coordinate')
                         elif col.endswith('_usd'):
                             v = Decimal(v)
                             if not v.is_finite() or (col != 'difference_usd' and v < 0): raise ValueError('Invalid financial amount')
@@ -63,12 +67,13 @@ def audit_directory(directory: Path):
             data[name] = rows
     if any(i['severity'] == 'ERROR' for i in issues):
         return data, {'status': 'REJECTED', 'issues': issues, 'sources': sources, 'counts': {k: len(v) for k,v in data.items()}}
-    lookup = {name: {r[spec.split()[0]]: r for r in data[name]} for name, spec in SPECS.items()}
+    lookup = {name: {r[spec.split()[0]]: r for r in data[name]} for name, spec in {**SPECS, **OPTIONAL_SPECS}.items()}
     for name, rows in data.items():
-        pk = SPECS[name].split()[0]
+        pk = {**SPECS, **OPTIONAL_SPECS}[name].split()[0]
         for row in rows:
             for col, reference in FK.items():
-                if col not in row or col == pk or row[col] is None: continue
+                # A profile's primary key is also its reference to the profiled entity.
+                if col not in row or (col == pk and name not in OPTIONAL_SPECS) or row[col] is None: continue
                 target = reference.split('.')[0]
                 if row[col] not in lookup[target]: issue(name, row[pk], col, f'Broken reference to {target}')
     entity_types = {'provider': set(lookup['providers']), 'facility': set(lookup['facilities']), 'member': set(lookup['members']), 'claim': set(lookup['claims']), 'owner': {r['owner_id'] for r in data['facilities']}}
@@ -104,6 +109,9 @@ def audit_directory(directory: Path):
         if abs(r['final_billed_usd'] - r['estimated_billed_usd'] - r['difference_usd']) > Decimal('.02'): issue('claim_estimates', r['estimate_id'], 'difference_usd', 'Estimate arithmetic mismatch')
         c = lookup['claims'].get(r['claim_id'])
         if c and r['final_billed_usd'] != c['billed_amount_usd']: issue('claim_estimates', r['estimate_id'], 'final_billed_usd', 'Estimate final differs from claim')
+    for r in data['provider_profiles']:
+        if r['operating_status'] not in {'active', 'suspended', 'revoked', 'closed'}: issue('provider_profiles', r['provider_id'], 'operating_status', 'Unknown operating status')
+        if r['operating_status'] != 'active' and not r['status_effective_date']: issue('provider_profiles', r['provider_id'], 'status_effective_date', 'Inactive status requires an effective date')
     for r in data['investigation_history']:
         if r['closed_date'] and r['closed_date'] < r['opened_date']: issue('investigation_history', r['investigation_id'], 'closed_date', 'Closure precedes opening')
         if r['outcome_available_date'] and r['closed_date'] and r['outcome_available_date'] < r['closed_date']: issue('investigation_history', r['investigation_id'], 'outcome_available_date', 'Outcome available before closure')
@@ -136,7 +144,7 @@ def import_dataset(directory=None, progress=lambda v: None):
                 for start in range(0,len(entity_rows),1000): con.execute(insert(entities).on_conflict_do_nothing(), entity_rows[start:start+1000])
                 report['inserted_counts'] = {}
                 for n,(name,rows) in enumerate(data.items()):
-                    table = tables[name]; pk = SPECS[name].split()[0]
+                    table = tables[name]; pk = {**SPECS, **OPTIONAL_SPECS}[name].split()[0]
                     existing = {r[pk]:r for r in con.execute(select(table)).mappings()}
                     fresh = []
                     for r in rows:

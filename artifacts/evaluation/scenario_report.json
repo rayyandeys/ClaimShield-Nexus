@@ -1,0 +1,60 @@
+{
+  "status": "CALCULATED",
+  "version": "scenario-pack-v1",
+  "radar": [
+    {
+      "provider_id": "P0252",
+      "expected_flag": true,
+      "scenario": "stolen_id_batch",
+      "why": "270 previously unrelated, dispersed members billed catheter supplies in six weeks without encounters or referrals.",
+      "detected": true,
+      "correct": true
+    },
+    {
+      "provider_id": "P0259",
+      "expected_flag": false,
+      "scenario": "legitimate_practice_closure",
+      "why": "New members are local, referred by the closing practice and have prior same-service history.",
+      "detected": false,
+      "correct": true
+    }
+  ],
+  "phoenix": [
+    {
+      "predecessor_id": "P0251",
+      "successor_id": "P0252",
+      "expected_flag": true,
+      "scenario": "obvious_successor",
+      "detected": true,
+      "correct": true
+    },
+    {
+      "predecessor_id": "P0253",
+      "successor_id": "P0254",
+      "expected_flag": true,
+      "scenario": "subtle_successor_no_shared_identifiers",
+      "detected": true,
+      "correct": true
+    },
+    {
+      "predecessor_id": "P0255",
+      "successor_id": "P0256",
+      "expected_flag": false,
+      "scenario": "address_only_lookalike",
+      "detected": false,
+      "correct": true
+    },
+    {
+      "predecessor_id": "P0257",
+      "successor_id": "P0258",
+      "expected_flag": true,
+      "expected_disposition": "explainable_by_documented_acquisition",
+      "scenario": "legitimate_acquisition",
+      "detected": true,
+      "correct": true
+    }
+  ],
+  "unexpected_radar_flags": [],
+  "unexpected_phoenix_flags": [],
+  "note": "Scenario fixtures are constructed demonstrations; agreement here is not evidence of real-world detection performance."
+}

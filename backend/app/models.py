@@ -17,9 +17,15 @@ SPECS = {
     'investigation_history': 'investigation_id provider_id facility_id opened_date closed_date outcome outcome_available_date review_channel case_summary',
     'billing_policies': 'policy_id rule_type applicable_claim_types synthetic_rule_description effective_from effective_to limitation policy_origin',
 }
-NULLABLE = {'encounter_id', 'payment_date', 'correction_of_claim_id', 'related_claim_id', 'modifier', 'days_supply', 'days_since_last_fill', 'effective_to', 'closed_date', 'outcome_available_date'}
+# Optional supplementary source files (scenario pack v1). Absent files are allowed; present files are validated like SPECS.
+OPTIONAL_SPECS = {
+    'provider_profiles': 'provider_id address zip latitude longitude phone practice_owner_id bank_token operating_status status_effective_date enrollment_date profile_source',
+    'member_profiles': 'member_id home_zip latitude longitude profile_source',
+}
+NULLABLE = {'encounter_id', 'payment_date', 'correction_of_claim_id', 'related_claim_id', 'modifier', 'days_supply', 'days_since_last_fill', 'effective_to', 'closed_date', 'outcome_available_date', 'status_effective_date', 'latitude', 'longitude', 'phone', 'practice_owner_id', 'bank_token', 'address', 'zip', 'home_zip'}
 INTS = {'duration_min', 'service_duration_min', 'unit_count', 'quantity', 'days_supply', 'days_since_last_fill'}
-DATES = {'active_from', 'service_date', 'submitted_date', 'payment_date', 'estimate_date', 'referral_date', 'effective_from', 'effective_to', 'opened_date', 'closed_date', 'outcome_available_date'}
+FLOATS = {'latitude', 'longitude'}
+DATES = {'active_from', 'service_date', 'submitted_date', 'payment_date', 'estimate_date', 'referral_date', 'effective_from', 'effective_to', 'opened_date', 'closed_date', 'outcome_available_date', 'status_effective_date', 'enrollment_date'}
 FK = {'member_id': 'members.member_id', 'provider_id': 'providers.provider_id', 'facility_id': 'facilities.facility_id', 'encounter_id': 'encounters.encounter_id', 'claim_id': 'claims.claim_id', 'claim_line_id': 'claim_lines.claim_line_id', 'source_provider_id': 'providers.provider_id', 'destination_provider_id': 'providers.provider_id', 'destination_facility_id': 'facilities.facility_id', 'correction_of_claim_id': 'claims.claim_id', 'related_claim_id': 'claims.claim_id'}
 
 def stamp(): return Column('created_at', DateTime(timezone=True), nullable=False, server_default=text('now()'))
@@ -29,12 +35,13 @@ def js(name, default='{}'): return Column(name, JSONB, nullable=False, server_de
 batches = Table('analysis_batches', metadata, ident('batch_id'), Column('kind', String(30), nullable=False), Column('status', String(30), nullable=False), Column('source', Text), Column('checksum', String(64)), Column('progress', Float, default=0), js('report'), stamp(), Column('completed_at', DateTime(timezone=True)))
 entities = Table('entities', metadata, ident('entity_id'), Column('entity_type', String(30), nullable=False), Column('label', Text, nullable=False), Column('source_table', String(50), nullable=False))
 tables = {}
-for name, spec in SPECS.items():
+for name, spec in {**SPECS, **OPTIONAL_SPECS}.items():
     columns = []
     for i, field in enumerate(spec.split()):
-        typ = Numeric(16, 2) if field.endswith('_usd') else Integer if field in INTS else Date if field in DATES else DateTime(timezone=True) if field == 'service_start' else Text
+        typ = Numeric(16, 2) if field.endswith('_usd') else Integer if field in INTS else Float if field in FLOATS else Date if field in DATES else DateTime(timezone=True) if field == 'service_start' else Text
         args = []
-        if i and field in FK: args.append(ForeignKey(FK[field], deferrable=True, initially='DEFERRED'))
+        # Profile tables use the referenced entity ID as their own primary key.
+        if field in FK and (i or name in OPTIONAL_SPECS): args.append(ForeignKey(FK[field], deferrable=True, initially='DEFERRED'))
         if name == 'relationships' and field in {'source_id', 'target_id'}: args.append(ForeignKey('entities.entity_id', deferrable=True, initially='DEFERRED'))
         columns.append(Column(field, typ, *args, primary_key=i == 0, nullable=False if i == 0 else field in NULLABLE, index=i > 0 and (field.endswith('_id') or field in {'service_date', 'service_start', 'claim_status'})))
     columns.extend([Column('source_batch_id', String(100), ForeignKey('analysis_batches.batch_id'), nullable=False), Column('source_file', Text, nullable=False), stamp()])
@@ -57,4 +64,12 @@ briefs = Table('investigation_briefs', metadata, ident('brief_id'), Column('case
 actions = Table('investigator_actions', metadata, ident('action_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('actor', Text, nullable=False), Column('action_type', Text, nullable=False), Column('explanation', Text, nullable=False), js('previous_state'), js('new_state'), stamp())
 audit = Table('audit_events', metadata, ident('event_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), index=True), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('actor', Text, nullable=False), Column('action_type', Text, nullable=False), Column('explanation', Text, nullable=False), js('previous_state'), js('new_state'), stamp())
 Index('ix_cases_priority', cases.c.priority_score.desc())
+
+# Migration 0002: investigation workflow extensions (Next-Best-Evidence, Member Radar, Phoenix).
+evidence_requests = Table('evidence_requests', metadata, ident('request_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False, index=True), Column('finding_id', String(100), ForeignKey('findings.finding_id'), nullable=False, index=True), Column('evidence_type', Text, nullable=False), Column('subject_id', Text), Column('status', String(30), nullable=False, index=True), Column('requested_by', Text, nullable=False), Column('estimated_days', Float, nullable=False), Column('estimated_p_benign', Float, nullable=False), Column('probability_source', Text, nullable=False), js('score_snapshot'), Column('justification', Text), Column('reviewer', Text), Column('review_notes', Text), Column('evidence_id', String(100)), Column('outcome_at', DateTime(timezone=True)), stamp(), Column('updated_at', DateTime(timezone=True), nullable=False, server_default=text('now()')))
+confirmations = Table('member_confirmations', metadata, ident('confirmation_id'), Column('case_id', String(100), ForeignKey('cases.case_id'), nullable=False, index=True), Column('finding_id', String(100), ForeignKey('findings.finding_id'), nullable=False, index=True), Column('claim_id', Text, ForeignKey('claims.claim_id'), nullable=False, index=True), Column('member_id', Text, ForeignKey('members.member_id'), nullable=False, index=True), Column('request_id', String(100), ForeignKey('evidence_requests.request_id'), nullable=False), Column('notice_text', Text, nullable=False), Column('created_by', Text, nullable=False), Column('simulated', Boolean, nullable=False, default=True), Column('response', String(20), nullable=False, default='PENDING'), Column('response_at', DateTime(timezone=True)), Column('notes', Text), Column('source', Text, nullable=False), stamp())
+member_risk = Table('member_risk', metadata, Column('member_id', Text, ForeignKey('members.member_id'), primary_key=True), Column('score', Float), Column('as_of', Date, nullable=False), js('signals'), Column('detector_version', Text, nullable=False), Column('batch_id', String(100), ForeignKey('analysis_batches.batch_id')), stamp())
+radar_batches = Table('radar_batches', metadata, Column('provider_id', Text, ForeignKey('providers.provider_id'), primary_key=True), Column('qualified', Boolean, nullable=False), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('as_of', Date, nullable=False), js('metrics'), js('checks', '[]'), Column('detector_version', Text, nullable=False), Column('batch_id', String(100), ForeignKey('analysis_batches.batch_id')), stamp())
+radar_batch_members = Table('radar_batch_members', metadata, Column('provider_id', Text, ForeignKey('providers.provider_id'), primary_key=True), Column('member_id', Text, ForeignKey('members.member_id'), primary_key=True), Column('first_recent_claim', Date, nullable=False), js('claim_ids', '[]'), Column('prior_relationship', Text), Column('prior_context', Boolean, nullable=False), Column('distance_km', Float), Column('member_score', Float))
+successors = Table('provider_successors', metadata, ident('link_id'), Column('predecessor_id', Text, ForeignKey('providers.provider_id'), nullable=False, index=True), Column('successor_id', Text, ForeignKey('providers.provider_id'), nullable=False, index=True), Column('score', Float, nullable=False), Column('flagged', Boolean, nullable=False), js('components'), js('details'), Column('finding_id', String(100), ForeignKey('findings.finding_id')), Column('detector_version', Text, nullable=False), Column('batch_id', String(100), ForeignKey('analysis_batches.batch_id')), stamp(), Column('updated_at', DateTime(timezone=True), nullable=False, server_default=text('now()')))
 

@@ -2,7 +2,7 @@
   "status": "CALCULATED",
   "controlled_responses": 5,
   "valid_structured_response_accepted": 1,
-  "invalid_or_unavailable_responses_fell_back": 4,
+  "invalid_or_unavailable_responses_fell_back": 3,
   "invented_evidence_accepted": 0,
   "observations": [
     {
@@ -17,7 +17,7 @@
     },
     {
       "input": "invented",
-      "output_mode": "deterministic",
+      "output_mode": "groq",
       "invented_evidence_present": false
     },
     {

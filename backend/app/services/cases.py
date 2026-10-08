@@ -25,15 +25,39 @@ def rank_values(fs,cs,forecast=0):
     factors={'severity':30*severity,'evidence':20*strength if active else 0,'exposure':20*min(math.log1p(exposure)/math.log1p(100000),1),'member_impact':10*min(members/10,1),'recurrence':10*forecast if active else 0,'independent_channels':10*min(max(channels-1,0)/3,1)}
     return {'priority_score':round(sum(factors.values()),2),'potential_financial_exposure':round(exposure,2),'evidence_strength':round(strength,3),'member_impact':members,'severity':'HIGH' if severity==1 else 'MEDIUM' if severity else 'LOW','ranking':{'policy_version':'siu-1.0','factors':{k:round(v,2) for k,v in factors.items()},'active_findings':len(active),'insufficient_evidence':strength<.75,'exposure_definition':'Unique active-flagged paid amounts + pending allowed amounts; review upper bound, not confirmed loss.','forecast_missing':not forecast,'probability_of_fraud':False}}
 
-def recalculate(con,case_id,bump=False):
-    case=con.execute(select(cases).where(cases.c.case_id==case_id).with_for_update()).mappings().one()
-    fs=[dict(r) for r in con.execute(select(findings).join(case_findings).where(case_findings.c.case_id==case_id)).mappings()]
+def case_inputs(con,case_id,lock=False):
+    """Exactly the inputs the SIU scorer uses for a case; shared by recalculation and read-only simulation."""
+    query=select(cases).where(cases.c.case_id==case_id)
+    case=con.execute(query.with_for_update() if lock else query).mappings().first()
+    if not case:return None,[],[],0
+    fs=[dict(r) for r in con.execute(select(findings).join(case_findings).where(case_findings.c.case_id==case_id).order_by(findings.c.finding_id)).mappings()]
     ids=[f['finding_id'] for f in fs];links={}
     for r in con.execute(select(finding_claims).where(finding_claims.c.finding_id.in_(ids))).mappings():links.setdefault(r['finding_id'],[]).append(r['claim_id'])
     for f in fs:f['claim_ids']=links.get(f['finding_id'],[])
     claim_ids={cid for v in links.values() for cid in v}
     cs=[dict(r) for r in con.execute(select(tables['claims']).where(tables['claims'].c.claim_id.in_(claim_ids))).mappings()]
     forecast=con.execute(select(predictions.c.value).where(predictions.c.provider_id==case['primary_entity'],predictions.c.horizon==90).order_by(predictions.c.created_at.desc()).limit(1)).scalar() or 0
+    return dict(case),fs,cs,forecast
+
+# Verified evidence outcomes, applied identically to real reviews and hypothetical simulations.
+CORROBORATED_COMPLETENESS=1.0
+BATCH_DENIALS_FOR_HIGH=3
+def apply_outcome(fs,finding_id,outcome,denials_after=0):
+    """Returns a copy of the findings with one verified outcome applied. 'explains' resolves the finding (removed from
+    active scoring); 'supports' marks it corroborated: completeness (the scorer's evidence-strength proxy) becomes 1.0 and
+    status ESCALATED. A member batch reaches HIGH severity only after three distinct reviewed member denials."""
+    out=[dict(f) for f in fs]
+    for f in out:
+        if f['finding_id']!=finding_id:continue
+        if outcome=='explains':f['status']='EXPLAINED'
+        elif outcome=='supports':
+            f['status']='ESCALATED';f['data_completeness']=max(f['data_completeness'],CORROBORATED_COMPLETENESS)
+            if f['finding_type']=='stolen_id_batch' and denials_after>=BATCH_DENIALS_FOR_HIGH:f['severity']='HIGH'
+        else:raise ValueError(f'Unknown outcome {outcome}')
+    return out
+
+def recalculate(con,case_id,bump=False):
+    case,fs,cs,forecast=case_inputs(con,case_id,lock=True)
     values=rank_values(fs,cs,forecast)
     values['updated_at']=now()
     if bump:values['evidence_version']=case['evidence_version']+1
@@ -42,11 +66,15 @@ def recalculate(con,case_id,bump=False):
 
 def consolidate(con,outputs,data):
     import networkx as nx
-    graph=nx.Graph();claim_map={c['claim_id']:c for c in data['claims']};month_groups={}
+    graph=nx.Graph();claim_map={c['claim_id']:c for c in data['claims']};month_groups={};provider_level={}
     for f,_ in outputs:
         ids=f.related_claim_ids
         graph.add_nodes_from(ids)
         for cid in ids[1:]:graph.add_edge(ids[0],cid)
+        # Provider-level findings about the same provider (anomaly, member batch, possible successor) form one investigation.
+        if f.entity_type=='provider' and ids:
+            if f.entity_id in provider_level:graph.add_edge(ids[0],provider_level[f.entity_id])
+            else:provider_level[f.entity_id]=ids[0]
         for cid in ids:
             c=claim_map[cid];key=(c['provider_id'],str(c['service_date'])[:7])
             if key in month_groups:graph.add_edge(cid,month_groups[key])
@@ -84,6 +112,19 @@ def apply_action(con,case_id,request):
     con.execute(update(cases).where(cases.c.case_id==case_id).values(**after,updated_at=now(),evidence_version=case['evidence_version']+1))
     record_action(con,case_id,request.actor,request.action_type,request.explanation,before,after)
     return after
+
+def corroborate(con,finding_id,actor,explanation,evidence_ids,denials_after=0):
+    """Persist a reviewed supporting outcome via apply_outcome, then recalculate every affected case and audit it."""
+    f=con.execute(select(findings).where(findings.c.finding_id==finding_id).with_for_update()).mappings().first()
+    if not f:raise LookupError('Finding not found')
+    updated=apply_outcome([dict(f)],finding_id,'supports',denials_after)[0]
+    before={k:f[k] for k in ['status','severity','data_completeness']};after={k:updated[k] for k in before}
+    con.execute(update(findings).where(findings.c.finding_id==finding_id).values(**after))
+    affected=list(con.execute(select(case_findings.c.case_id).where(case_findings.c.finding_id==finding_id)).scalars())
+    for cid in affected:
+        ranking=recalculate(con,cid,bump=True)
+        record_action(con,cid,actor,'finding_corroborated',explanation,before,{**after,'verified_evidence_ids':evidence_ids,'ranking':ranking},finding_id)
+    return {'finding_id':finding_id,'status':after['status'],'recalculated_cases':affected}
 
 def resolve(con,finding_id,request):
     f=con.execute(select(findings).where(findings.c.finding_id==finding_id).with_for_update()).mappings().first()

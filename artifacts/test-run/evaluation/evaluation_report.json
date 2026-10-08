@@ -33,13 +33,13 @@
     "capacity": 10,
     "selected_cases": 10,
     "precision_at_k": 1.0,
-    "claim_recall_at_k": 0.04152823920265781,
+    "claim_recall_at_k": 0.03820598006644518,
     "false_positive_workload": 0,
-    "synthetic_exposure_proxy_surfaced": 53047.05
+    "synthetic_exposure_proxy_surfaced": 48727.12
   },
   "case_consolidation_rate": 0.40794701986754967,
   "evidence_coverage": 1.0,
-  "processing_seconds": 34.27,
+  "processing_seconds": 25.24,
   "citation_validity": null,
   "unsupported_claim_rate": null,
   "notes": [

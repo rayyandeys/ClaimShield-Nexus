@@ -1,0 +1,39 @@
+{
+  "version": "evidence-catalog-1.0",
+  "probability_note": "Default probabilities are synthetic demonstration assumptions, not empirically validated real-world rates. Recorded reviewer outcomes replace them (Beta(1,1) smoothing) once at least min_history outcomes exist for a finding type and evidence type.",
+  "min_history": 5,
+  "evidence_types": {
+    "corrected_claim_record": {"label": "Corrected or replacement claim record", "explains": "A correction or replacement link shows the second submission was an adjustment.", "supports": "No correction exists and both submissions were paid."},
+    "remittance_advice": {"label": "Remittance advice", "explains": "Remittance shows one submission was denied, reversed or offset.", "supports": "Remittance shows both submissions paid."},
+    "operative_note": {"label": "Operative note", "explains": "The note documents the additional procedure or complexity.", "supports": "The note does not account for the billed quantity or components."},
+    "itemized_supplier_invoice": {"label": "Itemized supplier invoice", "explains": "The invoice matches the billed items, quantities and prices.", "supports": "The invoice does not support the billed items or quantities."},
+    "encounter_record": {"label": "Encounter or visit record", "explains": "A visit record documents the service.", "supports": "No visit record exists for the billed service."},
+    "member_confirmation": {"label": "Member confirmation (simulated)", "explains": "The member confirms receiving the item or service.", "supports": "The member reports not receiving the item or service.", "requires_claim": true},
+    "timestamp_audit": {"label": "Timestamp audit", "explains": "The audit shows staffing or a timestamp error explains the overlap.", "supports": "The audit confirms overlapping single-clinician services."},
+    "medical_necessity_documentation": {"label": "Medical necessity documentation", "explains": "Documentation supports the service frequency.", "supports": "Documentation does not support the frequency."},
+    "ownership_acquisition_records": {"label": "Ownership / acquisition records", "explains": "Filings document a legitimate acquisition or transfer of patients.", "supports": "Records show undisclosed common control with the restricted predecessor."},
+    "clinical_documentation": {"label": "Clinical documentation for the billed level", "explains": "Documentation supports the billed service level.", "supports": "Documentation supports only a lower service level."},
+    "prescription_change_record": {"label": "Prescription change or replacement record", "explains": "A dose change, loss or travel record explains the early refill.", "supports": "No change or replacement is documented."},
+    "contracted_price_schedule": {"label": "Contracted price schedule", "explains": "The contract allows the billed unit price.", "supports": "The billed price exceeds the contracted price."},
+    "medical_record_sample": {"label": "Medical record sample", "explains": "A record sample supports the provider's recent billing pattern.", "supports": "Sampled records do not support the billed services."},
+    "referral_documentation": {"label": "Referral documentation", "explains": "Clinical pathways document the referral concentration.", "supports": "Referrals lack documented clinical rationale."}
+  },
+  "by_finding_type": {
+    "duplicate_billing": [{"evidence_type": "corrected_claim_record", "estimated_days": 1, "p_benign": 0.45}, {"evidence_type": "remittance_advice", "estimated_days": 2, "p_benign": 0.35}],
+    "consumable_quantity_anomaly": [{"evidence_type": "operative_note", "estimated_days": 5, "p_benign": 0.50}, {"evidence_type": "itemized_supplier_invoice", "estimated_days": 4, "p_benign": 0.30}],
+    "supply_unit_price_anomaly": [{"evidence_type": "contracted_price_schedule", "estimated_days": 3, "p_benign": 0.40}, {"evidence_type": "itemized_supplier_invoice", "estimated_days": 4, "p_benign": 0.30}],
+    "duplicate_supply_charge": [{"evidence_type": "itemized_supplier_invoice", "estimated_days": 4, "p_benign": 0.40}],
+    "estimate_to_final_drift": [{"evidence_type": "operative_note", "estimated_days": 5, "p_benign": 0.50}, {"evidence_type": "itemized_supplier_invoice", "estimated_days": 4, "p_benign": 0.35}],
+    "missing_encounter_indicator": [{"evidence_type": "encounter_record", "estimated_days": 3, "p_benign": 0.40}, {"evidence_type": "member_confirmation", "estimated_days": 7, "p_benign": 0.35}],
+    "impossible_timing": [{"evidence_type": "timestamp_audit", "estimated_days": 3, "p_benign": 0.55}],
+    "excessive_utilization": [{"evidence_type": "medical_necessity_documentation", "estimated_days": 7, "p_benign": 0.40}],
+    "upcoding_indicator": [{"evidence_type": "clinical_documentation", "estimated_days": 5, "p_benign": 0.40}],
+    "unbundling_indicator": [{"evidence_type": "operative_note", "estimated_days": 5, "p_benign": 0.40}],
+    "early_refill": [{"evidence_type": "prescription_change_record", "estimated_days": 3, "p_benign": 0.50}],
+    "provider_statistical_anomaly": [{"evidence_type": "medical_record_sample", "estimated_days": 10, "p_benign": 0.50}],
+    "corroborated_referral_concentration": [{"evidence_type": "referral_documentation", "estimated_days": 5, "p_benign": 0.50}],
+    "stolen_id_batch": [{"evidence_type": "member_confirmation", "estimated_days": 7, "p_benign": 0.20}],
+    "member_id_possibly_compromised": [{"evidence_type": "member_confirmation", "estimated_days": 7, "p_benign": 0.25}],
+    "phoenix_successor": [{"evidence_type": "ownership_acquisition_records", "estimated_days": 5, "p_benign": 0.40}]
+  }
+}
