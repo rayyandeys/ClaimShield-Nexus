@@ -1,312 +1,354 @@
 # ClaimShield Nexus
 
-**From suspicious claims to defensible investigations** · Team CIPHER · Build to Care hackathon
+### Find the pattern. Choose the next evidence. Build a defensible case.
 
-ClaimShield Nexus is a local investigation platform for healthcare payment integrity.
+**Team CIPHER · Healthcare payment-integrity investigation prototype**
 
-- **Detection:** it screens claims with deterministic rules, item-level supply analysis, machine learning, relationship graphs and new-member and successor-provider detectors.
-- **Cases:** it fuses their source-linked findings into ranked investigation cases.
-- **Investigation:** it helps an investigator decide what evidence to get next, record reviewed decisions, and recommend actions under an explicit policy, with a full audit trail.
-- **Live stream:** a live mode streams synthetic claims through the whole pipeline in real time.
+ClaimShield Nexus is an end-to-end healthcare Fraud, Waste and Abuse (FWA) investigation prototype for Special Investigation Units (SIU). It combines validated data ingestion, claim screening, itemized supply analysis, provider anomaly detection, future-event forecasts, relationship exploration, investigation prioritization, AI assistance and human review in one connected application.
 
-> **Synthetic data only.** Every patient, provider, facility and claim is synthetic. Findings are screening indicators for human review. They do not establish fraud, intent, clinical necessity or recoverable overpayment. Review exposure is an upper bound, not a loss estimate. Authentication is a labeled demo identity, not a production login.
+Its three flagship capabilities—**Member Radar, Phoenix Provider Detector and Next-Best-Evidence**—extend that foundation: identify potentially compromised member activity, investigate possible successor providers, and choose evidence that could change a review decision.
 
----
+**Platform workflow:** ingest → validate → detect → connect → forecast → consolidate → prioritize → investigate → review → reassess → audit.
 
-## Contents
+[Flagship features](#how-the-three-features-work) · [Complete platform](#complete-platform-capabilities) · [Live processing](#live-claims-through-the-actual-engines) · [Evaluation](#measured-internal-evaluation) · [Quick start](#quick-start) · [Feature-to-code-and-test map](docs/FEATURE_EVIDENCE_MAP.md)
 
-[Features](#features) · [Quick start](#quick-start) · [Using the app](#using-the-app) · [Architecture](#architecture) · [Results](#results) · [Testing](#testing) · [Configuration](#configuration) · [Project structure](#project-structure) · [Documentation](#documentation) · [Troubleshooting](#troubleshooting) · [Limitations](#limitations)
+**Three connected investigation features:**
 
----
+| Feature | Investigator's question | What happens in the product |
+|---|---|---|
+| **Member Radar** | Why is this provider suddenly billing so many previously unrelated members? | Detect a suspicious batch, inspect each member's signals, and record reviewed simulated confirmations. |
+| **Phoenix Provider Detector** | Could this new provider be continuing a closed or sanctioned operation? | Compare five measurable signals, inspect a possible successor link, and investigate legitimate explanations such as an acquisition. |
+| **Next-Best-Evidence** | What should I verify next with limited investigation capacity? | Preview how evidence could explain or strengthen a finding, change its priority, and move the case across the review cutoff. |
 
-## Features
+These workflows share the same source evidence, case workspace, ranking system and audit trail.
 
-### Detection engines
-| Engine | What it finds |
+![ClaimShield dashboard showing a completed synthetic live session](docs/images/live-simulation.jpg)
+
+*Recorded local demo: 90 synthetic claims shown as fully analyzed. Counts and rates reflect that session, not a general throughput guarantee.*
+
+> All records and member confirmations are synthetic. Findings are leads for human review. This prototype does not establish fraud or confirmed losses, and uses a labeled demo identity rather than production authentication.
+
+## Follow one investigation
+
+1. **Spot the pattern.** Member Radar flags a provider with a sharp increase in members lacking prior relationships or care context.
+2. **Connect the history.** Phoenix identifies a possible relationship to a previously revoked provider and shows the patient, identifier, billing, referral and timing comparisons.
+3. **Choose the next step.** Next-Best-Evidence compares applicable requests by expected priority change, review-capacity impact and estimated turnaround.
+4. **Preview the consequence.** Simulate an explanation without saving any changes. See which cases would enter or leave the available review slots.
+5. **Review the evidence.** Record an investigator-reviewed outcome. The case is recalculated and a source-linked evidence record and audit events are added.
+6. **Check decision readiness.** A separate policy evaluates whether an action needs evidence or approval. A high priority score alone cannot authorize an external referral.
+
+The supplied scenario pack supports this story around **P0252**, with additional examples for a subtle successor, an address-only look-alike, a legitimate practice closure, and a documented acquisition. [Demo walkthrough](docs/demo_script.md)
+
+## How the three features work
+
+### Next-Best-Evidence: prioritize the next investigation step
+
+For each applicable evidence request, the system simulates an outcome that explains the finding and an outcome that supports it. Both use the **same scorer used to recalculate real cases**. It estimates the size of the priority change and the chance of crossing the top-K review boundary, then accounts for estimated turnaround time.
+
+- Read-only simulations leave the saved case unchanged.
+- Reviewed outcomes can lower or strengthen a case's priority.
+- Probability estimates are labeled synthetic defaults until enough reviewed outcomes exist; subsequent estimates use Beta smoothing.
+- Requests move through requested, received, reviewed, inconclusive or withdrawn states.
+
+[Implementation](backend/app/services/evidence.py) · [Workflow and read-only tests](backend/tests/test_features_integration.py)
+
+### Member Radar: connect a provider-wide pattern to member evidence
+
+The detector combines historical acquisition-rate checks with five member signals: first contacts, care-history mismatch, geographic change, missing encounters and duplicate services across providers. Median/MAD normalization puts the available member signals on a comparable scale.
+
+- Required batch checks cover member count, growth, missing prior relationships and missing prior care context.
+- Geography is corroborating context rather than a required trigger.
+- A simulated response changes scoring only after investigator review.
+- Three distinct reviewed member denials raise batch severity to HIGH. One member confirming a service can explain that member's allegation without clearing the whole batch.
+- Other claims involving the batch's members are shown as spillover leads, separate from review exposure.
+
+[Implementation](backend/app/services/radar.py) · [Confirmation workflow](backend/app/services/evidence.py) · [Methods and limits](docs/investigation_extensions.md)
+
+### Phoenix: make a possible successor relationship inspectable
+
+Phoenix compares eligible new providers with providers that were suspended, revoked or closed. It uses Jaccard similarity for patient and referral overlap, cosine similarity for billing-code counts, identifier matching, and time between closure and enrollment.
+
+| Component | Weight |
+|---|---:|
+| Patient overlap | 35% |
+| Shared operational identifiers | 25% |
+| Billing-code similarity | 20% |
+| Referral-source overlap | 15% |
+| Timing | 5% |
+
+A flag needs a total score of at least 0.55 plus multiple supporting components, including behavioral evidence. Missing identifiers never become matches. A dashed graph edge displays the result and its source records. Prior-provider allegations are not transferred to the successor.
+
+These are explicit prototype heuristics. A similarity score is not a misconduct probability. A documented acquisition is surfaced as a possible explanation for review.
+
+[Implementation](backend/app/services/phoenix.py) · [Versioned thresholds](backend/app/config/detectors.json)
+
+## Complete platform capabilities
+
+### 1. Dashboard and connected investigator console
+
+The React console gives investigators dataset dates, claim counts, active findings, investigation counts, unique-claim review exposure, monthly activity, case severity, top-ranked investigations, model readiness and processing history. The embedded Live Claims Monitor connects new events to the relevant claim or investigation.
+
+Global claim search, a keyboard search shortcut, a collapsible sidebar, filtered/paginated lists, loading/error/empty states and links between screens support the investigation workflow.
+
+| Screen | What an investigator can inspect or do |
 |---|---|
-| **Claim Rules** | Duplicate submissions, missing encounters, upcoding, unbundling, early refills, overlapping appointments, excessive utilization (gated by a synthetic billing-policy catalog) |
-| **SupplyTrace** | Itemized consumable quantity and unit-price outliers against matched peers (same procedure, complexity and supply code), duplicate supply lines, estimate-to-final drift |
-| **Isolation Forest** | Provider behavior anomalies from time-consistent features, reported as a percentile, not a probability |
-| **30/60/90-day forecasts** | Recurrence of observable billing events (HistGradientBoosting with a logistic benchmark, trained and tested in time order) |
-| **Nexus graph** | Provider, facility, owner, member and claim relationships; referral concentration corroborated by independent findings |
-| **Member Radar** | Providers that suddenly bill many previously unrelated members; member risk signals scored with robust (median-based) statistics |
-| **Phoenix detector** | Possible successors of suspended, revoked or closed providers, scored as a five-component similarity (not a probability) |
+| Dashboard | Assess workload, view trends and readiness, open top investigations, run a synthetic live session |
+| Claims | Search and filter claims; inspect line items, encounters, findings, source fields and related cases |
+| SupplyTrace | Inspect itemized supply quantity and unit price against matched peers and compare estimates with final bills |
+| Nexus network | Explore entities, recorded relationships and possible-successor links with date/type filters |
+| Member Radar | Review batches, acquisition history, relationship checks, member signals and batch graphs |
+| Future risk | Inspect provider anomalies, 30/60/90-day recurrence forecasts, input signals and limitations |
+| SIU queue | Set review capacity, filter investigations, inspect ranking factors and decision readiness |
+| Case Workspace | Review findings and evidence, request records, simulate outcomes, record reviews and inspect the timeline |
+| Data ingestion | Import or upload a snapshot, inspect validation issues, queue analysis and follow processing jobs |
+| Models & evaluation | Inspect model versions, metrics, benchmarks, calibration bins and scenario results |
 
-### Investigation
-- **Cases and SIU queue:** findings are consolidated into cases, which the existing SIU scorer (`siu-1.0`) ranks. The score combines severity, evidence, unique-claim exposure, member impact, recurrence and the number of independent detection engines. A capacity slider limits the queue to what the team can handle.
-- **Case Workspace:** findings, evidence records, claims, timeline, finding review (explain, keep unresolved or escalate against verified records) and investigator actions.
-- **Next-Best-Evidence:** the evidence requests most likely to change the review decision, with read-only "what-if" simulations scored by the production scorer, plus a full evidence-request lifecycle.
-- **Member confirmations:** simulated member notices (no one is ever contacted); responses count only after investigator review. **Spillover** shows a member batch's other claims as leads.
-- **Compliance & decisions:** an internal demo policy, `CLAIMSHIELD-SIU-V1`, evaluates four actions:
-  - Request more evidence
-  - Monitor provider
-  - Recommend full investigation
-  - Recommend external referral
+[Screen guide](docs/SCREEN_GUIDE.md) · [Application routes](frontend/src/App.tsx)
 
-  Each action gets a status: Allowed, Needs Evidence, Requires Approval or Blocked. The status comes from reviewed evidence, never from the priority score. Recommendations are enforced on the server and audited. The SIU queue shows each case's **Decision readiness**.
-- **AI briefs (optional):** Groq generates a brief, an evidence challenger or an evidence investigator report. Each fact is checked locally against the source records, and the app falls back to a deterministic report without a key.
+### 2. Validated data ingestion and provenance
 
-### Live Claims Monitoring
-Start a session from the dashboard: 90 synthetic claims at one per second. Each claim goes through two layers:
-- **Immediately:** it is validated, saved, and screened by Claim Rules and SupplyTrace, and any findings update cases and rankings.
-- **Background micro-batches:** the existing worker runs the stored ML models, the graph, Member Radar and Phoenix, scoped to the affected providers and members.
+The importer handles **12 operational CSV tables** and two optional profile tables. It checks schema, types, required references, duplicate IDs, dates, claim-line totals, supply-line consistency and financial arithmetic before importing a snapshot transactionally. Missing encounter documentation is retained as a reviewable gap rather than silently fabricated.
 
-Every claim's 12 processing stages are tracked, and a claim is marked *Fully analyzed* only when all of them have finished. The event feed shows only committed database events, and each event links to its claim, case or provider.
+- SHA-256 file checksums, batch records and source provenance make imports inspectable.
+- Invalid snapshots are rejected with validation reports.
+- Identical imports avoid duplicate records; conflicting changes under existing source IDs are rejected.
+- UI upload accepts a complete CSV snapshot; local import and import-plus-analysis use the same durable worker workflow.
+- Operational source data and hidden evaluation labels have separate roles; claim and case APIs do not expose the answer labels.
 
----
+The original snapshot includes **20,000 claims, 4,000 members, 250 providers, 60 facilities, 27,221 claim lines and 7,081 supply items**. The scenario pack appends records for the flagship features while preserving the original snapshot.
+
+[Importer](backend/app/services/ingestion.py) · [Data dictionary](docs/data_dictionary.md) · [Ingestion tests](backend/tests/test_ingestion.py)
+
+### 3. Deterministic claim screening
+
+The rule engine turns specific recorded inconsistencies into findings with evidence IDs, observed values, context, severity and limitations.
+
+| Screening capability | Implemented check |
+|---|---|
+| Duplicate billing | Repeated member/provider/procedure/service-time submissions, with correction, replacement and excluded-status handling |
+| Upcoding indicator | A billed higher-level synthetic consultation conflicts with the recorded lower-level, low-complexity encounter |
+| Unbundling indicator | Base and component codes appear together under the imported synthetic package policy |
+| Missing encounter | No linked encounter is available; the finding explicitly identifies missing documentation |
+| Impossible timing | Recorded appointments for different members overlap for the same provider |
+| Early refill | Recorded refill interval is less than half the preceding days supply |
+| Excessive utilization | Rolling 30-day same-procedure activity exceeds a procedure/complexity peer threshold; small peer groups and high-complexity cases receive conservative handling |
+
+Rules use the project's fictional billing-policy catalog. Clinical necessity, staffing explanations, adjustments and legitimate refill reasons remain investigator questions.
+
+[Rule implementation](backend/app/services/detection.py) · [Rule and legitimate-context tests](backend/tests/test_detection.py)
+
+### 4. SupplyTrace: item-level payment integrity
+
+SupplyTrace adds a separate view of consumables that can be missed in a claim-total score. It compares the **same procedure, recorded complexity and supply code**, requires at least 20 peer observations for outlier decisions, and calculates medians and interquartile ranges.
+
+- **Quantity outliers:** unusually many units of a matched item.
+- **Unit-price outliers:** unusually high unit charges, independently of quantity.
+- **Duplicate supply charges:** distinct records with matching item, quantity and price.
+- **Estimate-to-final drift:** final billed amount more than 50% above the recorded estimate.
+- **Review context:** peer counts, thresholds, comparison charts, plausible legitimate explanations and missing documentation such as item logs or operative notes.
+
+Supply amounts already represented in claim lines are not added again to exposure. An estimate increase is a review signal, not an automatic finding of overpayment.
+
+[Supply analysis](backend/app/services/detection.py) · [SupplyTrace screen](frontend/src/pages/Claims.tsx) · [Tests](backend/tests/test_detection.py)
+
+### 5. Provider anomaly detection
+
+A persisted **Isolation Forest** detects unusual provider behavior using claim volume, financial ratios, member/procedure counts, observed event rates, referral concentration and available investigation history. Amount features are normalized relative to specialty peers; scoring uses a historical reference distribution.
+
+The UI reports an anomaly percentile and underlying signals. Features respect scoring cutoffs, including available payment and outcome information. Model artifacts and versions are retained for repeat scoring. A percentile describes unusualness; it is not a probability of fraud or a causal explanation.
+
+[ML implementation](backend/app/services/ml.py) · [Temporal feature and model persistence tests](backend/tests/test_graph_cases_ml.py)
+
+### 6. Forward-looking 30/60/90-day event recurrence
+
+Three independently trained **HistGradientBoosting classifiers** estimate future recurrence of defined observable synthetic billing events. Each horizon has a LogisticRegression benchmark. Chronological train/validation/test periods and a 90-day embargo separate future label windows across splits.
+
+Model cards expose sample counts, class counts, split dates, features, PR-AUC, ROC-AUC where defined, Brier scores, calibration bins and benchmark results. Inadequate data produces an explicit unavailable status. The application does not substitute a fabricated probability.
+
+These forecasts support prioritization. They are not clinically validated fraud predictions, are not post-hoc calibrated, and need not increase monotonically across independently fitted horizons.
+
+[Model cards](docs/model_cards.md) · [Forecast implementation](backend/app/services/ml.py) · [Integration checks](backend/tests/test_integration.py)
+
+### 7. Nexus relationship intelligence
+
+The NetworkX graph connects providers, facilities, owners, members, claims and referrals with original source record references. Referral concentration becomes a finding only when supported by independent endpoint findings. Recorded ownership connections remain contextual.
+
+The Cytoscape explorer supports node/edge inspection, zoom and pan, entity-type and relationship filters, an as-of date and bounded graph views with truncation disclosure. Phoenix adds explicitly labeled algorithmic-similarity edges, distinguishable from recorded relationships. Provider banners connect graph results with cases, Radar and forecasts.
+
+[Graph construction and finding logic](backend/app/services/graph.py) · [Network UI](frontend/src/pages/Intelligence.tsx) · [Graph tests](backend/tests/test_graph_cases_ml.py)
+
+### 8. Case consolidation and transparent SIU prioritization
+
+Shared-claim and provider-month findings are consolidated into investigations. Provider-level anomaly, member-batch and possible-successor findings about the same provider can join one case. The workspace keeps related claims, evidence and entities connected.
+
+| Priority factor | Maximum contribution |
+|---|---:|
+| Severity | 30 |
+| Evidence completeness proxy | 20 |
+| Log-normalized unique-claim review exposure | 20 |
+| Member impact | 10 |
+| 90-day event recurrence | 10 |
+| Corroboration across distinct engine channels | 10 |
+
+The queue supports review capacity, filters and an inspectable factor breakdown. Distinct engine channels are an explicit scoring heuristic, not proof of statistical independence. Decision readiness is displayed separately from priority.
+
+**Financial discipline:** billed, allowed, paid and member responsibility remain distinct. Review exposure counts unique active-flagged claims: paid amounts for paid claims and allowed amounts for pending claims. It is an upper bound for investigation, not confirmed loss or recoverable savings. Prepayment, postpayment and mixed case contexts are identified.
+
+[Consolidation and shared scorer](backend/app/services/cases.py) · [Queue and case UI](frontend/src/pages/Cases.tsx) · [Unique-exposure tests](backend/tests/test_graph_cases_ml.py)
+
+### 9. Human investigation, reassessment and audit history
+
+Case Workspace combines findings, Next evidence, Requests, Compliance & decisions, Confirmations, Spillover, Evidence, Claims, Brief and Timeline views.
+
+- Assign an investigator, add notes, request records and move through validated case states.
+- Review a finding as explained, unresolved or escalated with a reason and verified evidence references.
+- Preserve the original finding while recalculating priority and exposure after review.
+- Maintain evidence versions and append audit events with actor, explanation, previous state and new state.
+- Reject invalid transitions and evidence references on the server.
+- Preserve reviewed outcomes in tested same-snapshot reanalysis and stream workflows.
+
+PostgreSQL triggers enforce append-only audit events through ordinary database operations. This is a persistence control; it does not claim cryptographic protection against a privileged database administrator.
+
+[Review service](backend/app/services/cases.py) · [Audit migration](backend/alembic/versions/0001_initial.py) · [Human review tests](backend/tests/test_integration.py)
+
+### 10. Three AI assistance modes with source verification
+
+Optional Groq integration supports three different investigation tasks:
+
+| Mode | Purpose |
+|---|---|
+| Investigation brief | Summarize the strongest source facts and open questions |
+| Evidence challenger | Propose plausible legitimate explanations and what would confirm or refute them |
+| Evidence investigator | Identify facts needing verification and records to request |
+
+The service retrieves bounded case evidence, requests a structured schema, and verifies proposed facts against local **evidence ID + field + value** records. It checks finding references and constrains narrative numbers. Unverifiable items are filtered; unusable responses trigger a deterministic source-linked fallback. Factual narrative and financial sections are assembled locally.
+
+Timeouts, bounded retries, caching and failure categories support predictable operation. Keys stay server-side. The model cannot execute SQL, resolve findings or change case state. Controlled tests exercise invented evidence, mismatched values, malformed responses, rate limits and timeouts. Live provider success depends on an available key and service.
+
+[AI service](backend/app/services/briefs.py) · [Verification tests](backend/tests/test_briefs.py) · [Controlled integration tests](backend/tests/test_integration.py)
+
+### 11. Policy-governed decisions
+
+An internal versioned demonstration policy evaluates four actions: **request evidence, monitor provider, recommend full investigation, and recommend external referral**. Each gets an Allowed, Needs Evidence, Requires Approval or Blocked result with reasons.
+
+Reviewed support is required for full-investigation eligibility. External referral additionally requires an investigation context, multiple reviewed supporting evidence records, applicable ownership/member evidence, justification and supervisor approval. Explained findings cannot support escalation, and closed cases block actions.
+
+The server re-evaluates policy on submission and audits recommendations or blocks. Approval endpoints refuse while the application has only a demo identity; a typed name cannot substitute for an authenticated supervisor. This policy is a product demonstration, not a regulatory certification.
+
+[Policy implementation](backend/app/services/policy.py) · [Policy specification](docs/POLICY_DECISIONS.md) · [Policy integration tests](backend/tests/test_policy_integration.py)
+
+### 12. Persistent processing and reproducible operation
+
+Docker Compose runs five services: PostgreSQL, FastAPI, the analytics worker, the stream runner and the React frontend. Database migrations run before API readiness; service health checks expose startup problems. The database uses a persistent volume, source CSVs are mounted read-only, and host-facing ports bind to loopback.
+
+The PostgreSQL job queue tracks status, progress, attempts, results and errors. Workers claim jobs using `SKIP LOCKED`, renew leases with heartbeats, reclaim expired work after interruption and apply bounded retries. Dataset-processing operations prevent duplicate active jobs. Model/evaluation artifacts are stored locally.
+
+The REST API has typed request/response contracts, pagination, explicit validation errors and OpenAPI documentation. Shared finding/evidence contracts retain source IDs, provenance, model/rule version, completeness and limitations across detection engines and the frontend.
+
+[Compose services](docker-compose.yml) · [Worker](backend/app/worker.py) · [Contracts](docs/api_contracts.md) · [Schemas](backend/app/schemas.py)
+
+## Live claims through the actual engines
+
+Start a synthetic session from **Dashboard → Live Claims Monitor**. Claims are validated and committed to PostgreSQL, immediately screened by Claim Rules and SupplyTrace, then enriched in background micro-batches using stored ML models, the graph, Radar and Phoenix.
+
+The inspector tracks **12 stages per claim** and distinguishes completed work, unavailable data, non-applicable stages and failures. Database-backed events link to the claim, finding, case or provider. A “fully analyzed” state requires the necessary processing stages to reach their defined terminal states; insufficient data is disclosed.
+
+[Live workflow](docs/LIVE_CLAIMS_MONITORING.md) · [Integration tests](backend/tests/test_stream_integration.py)
+
+Sessions support start/stop, prior-session inspection, event filters, claim-stage inspection and controlled retry of failed claims. Resumable event cursors and the SSE endpoint allow event consumption to continue from a known point. Session-specific cohorts isolate generated examples from the original investigation scenarios. Integration tests cover duplicate deliveries, review preservation, draining, interruption recovery and explicit failure states.
+
+## Measured internal evaluation
+
+On the same **7,394 held-out synthetic claims**, the recorded internal comparison reports:
+
+| Detection stack | Labeled suspicious claims in top 100 | Other claims in top 100 |
+|---|---:|---:|
+| Rules | 39 | 61 |
+| Rules + ML | 59 | 41 |
+| Rules + ML + graph + SupplyTrace | **92** | **8** |
+
+That is **Precision@100 of 0.39 → 0.59 → 0.92** in this retrospective synthetic evaluation. The full stack's top 100 captures about **15.3% of the 602 labeled suspicious held-out claims**. This is an internal baseline comparison, not overall accuracy or a benchmark against other products. Supply peers use snapshot statistics, so it is not a fully prospective replay.
+
+The three investigation extensions have separate scenario and workflow checks; the 0.92 result is not evidence of their incremental detection benefit. Forecast results and limitations, including lack of post-hoc calibration, are reported separately.
+
+[Evaluation JSON](artifacts/evaluation/evaluation_report.json) · [Scenario results](artifacts/evaluation/scenario_report.json) · [Model cards](docs/model_cards.md)
 
 ## Quick start
 
-**Requirements:** Windows 10/11 with WSL2 and Docker Desktop (Linux containers), and Git. Host Python and Node are not needed.
+On the documented Windows setup, use Docker Desktop with Linux containers/WSL2 and Git. Host Python and Node are not required.
 
 ```powershell
 git clone https://github.com/rayyandeys/ClaimShield-Nexus.git
 cd ClaimShield-Nexus
 Copy-Item .env.example .env
 docker compose up --build -d
-
-# Import data, train models, analyze (a few minutes)
 docker compose exec backend python -m app.cli all
-# Add the investigation scenario pack, then re-analyze
 docker compose exec backend python -m app.cli augment
 docker compose exec backend python -m app.cli analyze
 ```
 
-Open **http://localhost:5173**.
+Open **http://localhost:5173**. API documentation is at **http://localhost:8000/docs**.
 
-| Service | Address |
-|---|---|
-| Investigator console | http://localhost:5173 |
-| API / OpenAPI docs | http://localhost:8000 · http://localhost:8000/docs |
-| PostgreSQL | 127.0.0.1:55432 (user `claimshield`) |
+`all` imports the original snapshot and trains/analyzes it. `augment` adds the synthetic investigation scenarios; `analyze` includes them in findings and cases. Startup alone does not import the data. A Groq key is optional; configuration details are in the existing [technical README](README.md).
 
-When setup is complete, the database holds **21,151 claims, 1,599 findings and 898 cases**, all five services report `healthy` in `docker compose ps`, and P0252 tops the SIU queue at priority 86.7.
-
-Day-to-day commands:
-
-```powershell
-docker compose up -d        # start
-docker compose ps           # status
-docker compose logs --tail 100 worker
-docker compose stop         # stop (keeps data)
-```
-
-Never run `docker compose down -v`: it deletes the database, including every investigator decision.
-
-To set up a second machine, see **[SETUP_NEW_MACHINE.md](SETUP_NEW_MACHINE.md)**. It is written for an AI agent, and includes copying an existing database.
-
----
-
-## Using the app
-
-| Screen | Route | Highlights |
-|---|---|---|
-| Dashboard | `/` | Totals, the **Live Claims Monitor** (collapsible; Start/Stop), claims trend, case severity, top investigations, system status |
-| SIU queue | `/queue` | Ranked cases, capacity, decision readiness, evidence that could change the queue |
-| Case Workspace | `/cases/:id` | Tabs: Findings · Next evidence · Requests · **Compliance & decisions** · Confirmations · Spillover · Evidence · Claims · Brief · Timeline |
-| Claims / SupplyTrace | `/claims`, `/supplytrace` | Search the ledger; claim detail with lines, encounter, findings; supply peer comparison |
-| Nexus network | `/network?entity=` | Interactive graph with filters, an as-of date and a Phoenix edge inspector |
-| Member radar | `/radar` | New-member batches, threshold checks, provider–member graph, member signals |
-| Future risk | `/forecast?provider=` | 30/60/90-day forecasts and anomaly percentile |
-| Data ingestion | `/ingestion` | Import, validate and analyze; upload a CSV snapshot; job queue |
-| Models & evaluation | `/evaluation` | Model cards, held-out metrics, scenario evaluation |
-
-**Demo cases** (from the scenario pack):
-- **`CASE-27cd5d9b606a132d854e` (P0252):** a suspicious new-member batch plus a possible successor of the revoked P0251 (similarity 0.82).
-- **`CASE-a2bd7630032dd71dfa4d` (P0258):** a look-alike successor that a documented acquisition explains.
-- **P0259:** a legitimate fast-growing practice that is not flagged.
-
-Walkthroughs: [main demo](docs/demo_script.md) · [live stream demo](docs/LIVE_STREAM_DEMO.md) · [every screen explained](docs/SCREEN_GUIDE.md).
-
----
+For later sessions, `docker compose up -d` starts services and `docker compose stop` stops them while retaining the database. Removing the database volume discards investigator decisions.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  UI[React console] -- /api/v1 --> API[FastAPI]
-  API --> DB[(PostgreSQL 17)]
-  API -- jobs --> Q[(job queue)]
-  Q --> W[Analytics worker]
-  S[Stream runner] --> DB
-  W --> E[Rules · SupplyTrace · Isolation Forest · Forecasts · Graph · Member Radar · Phoenix]
-  E --> F[Findings + evidence] --> C[Cases + SIU scorer]
-  C --> DB
-  API -. optional .-> G[Groq, verified locally]
+    Input[Synthetic CSVs or live claims] --> Validate[Validate and persist]
+    Validate --> DB[(PostgreSQL)]
+    DB --> Engines[Rules · SupplyTrace · ML · Graph]
+    DB --> Extensions[Member Radar · Phoenix]
+    Engines --> Evidence[Source-linked findings and evidence]
+    Extensions --> Evidence
+    Evidence --> Cases[Consolidated cases and SIU queue]
+    Cases --> Next[Next-Best-Evidence simulations]
+    Next --> Human[Investigator evidence review]
+    Human --> Cases
+    Human --> Audit[Audit history and decision policy]
+    Cases --> Brief[Verified structured AI or local brief]
 ```
 
-Five Docker services: `db`, `backend`, `worker`, `stream` and `frontend`.
+**Stack:** FastAPI, PostgreSQL, SQLAlchemy/Alembic, pandas/NumPy/scikit-learn, NetworkX, React/TypeScript, ECharts, Cytoscape and Docker Compose. The persistent worker uses leases, heartbeats and bounded retries. [Architecture details](docs/architecture.md)
 
-- **Single source of truth:** PostgreSQL holds the source tables, findings, cases, the job queue, stream state and an append-only audit trail.
-- **Shared contracts:** every path that creates findings uses one finding and evidence format, and every ranking uses the same SIU scorer.
-- **Safe re-runs:** IDs derived from content make re-analysis and retries idempotent, and reviewer decisions are never overwritten.
-- **Concurrency:** advisory locks and leases (`SKIP LOCKED`) keep concurrent processing safe.
+## Verification you can inspect
 
-**Stack:**
-- **Backend:** Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 Core, Alembic, psycopg 3.
-- **Analytics:** pandas, NumPy, SciPy, scikit-learn, NetworkX, Groq SDK.
-- **Frontend:** React 19, TypeScript, Vite, TanStack Query and Table, React Router, ECharts, Cytoscape.js, Lucide, Tailwind v4.
-- **Tests:** pytest and Vitest.
+The [complete feature evidence map](docs/FEATURE_EVIDENCE_MAP.md) connects each major capability to its screen, implementation and relevant tests. It is a navigation aid for human and automated code review, not an assertion of a score under an unpublished judging rubric.
 
-Full details: **[docs/architecture.md](docs/architecture.md)**.
-
----
-
-## Results
-
-All results are measured on synthetic data with injected patterns. They describe this prototype, not real-world fraud detection performance.
-
-| Measure | Result |
+| Evaluation area | Repository evidence |
 |---|---|
-| Held-out Precision@100 claims: rules only / + ML / + graph + SupplyTrace | **0.39 / 0.59 / 0.92** |
-| Forecast test PR-AUC, 30 / 60 / 90 days | ≈ 0.07 / 0.15 / 0.21 |
-| Scenario pack (Member Radar and Phoenix) | 6/6 scenarios agree, no unexpected flags |
-| Live stream (60 claims at 1/s, local Docker) | 60/60 fully analyzed, 0 failed; end-to-end latency mean 11.2 s, p95 18.0 s; micro-batch ≈ 3.6 s; dashboard API ≈ 48 ms median during the stream |
+| Problem coverage | Claim rules, SupplyTrace, anomaly detection, graph intelligence, forecasts, SIU prioritization and case review |
+| Distinctive functionality | Next-Best-Evidence, Member Radar with confirmations, Phoenix successor detection |
+| Integration | Common finding/evidence contracts, shared case scorer, linked UI routes and real live-processing path |
+| Explainability | Source records, thresholds, score components, model cards and explicitly hypothetical alternative explanations |
+| Data integrity | Transactional imports, checksums, validation, separate financial amounts and unique-claim exposure |
+| Human oversight | Verified evidence references, state transitions, policy enforcement and audit events |
+| Evaluation rigor | Internal baseline comparison, chronological splits, benchmark models and disclosed synthetic-data limits |
+| Reproducibility | Docker Compose, migrations, seeded scenarios, persisted models and executable verification commands |
 
-Raw reports are in `artifacts/evaluation/`.
-
----
-
-## Testing
+The repository includes tests for source validation, unique exposure, temporal model features, review preservation, read-only simulations, duplicate evidence requests, confirmation rules, legitimate look-alikes, stream recovery and decision-policy enforcement.
 
 ```powershell
-# Everything: backend unit, feature/policy/stream integration, frontend
-powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
-
-# Read-only smoke test against the running API
+# Isolated backend and investigation workflow suites
+./scripts/test.ps1
+# Frontend component tests
+docker compose exec frontend npm test
+# Read-only check of the running API
 docker compose exec backend python -m app.smoke
-
-# Measured live-stream session (writes: starts a real session)
-docker compose exec backend python -m app.stream_measure --claims 60 --rate 1
 ```
 
-| Suite | Latest result |
-|---|---|
-| Backend (unit and review workflow, `claimshield_test`) | 122 passed |
-| Integration (features, policy, live stream, disposable `claimshield_features_test`) | 32 passed |
-| Frontend (Vitest) | all passing (28 tests) |
-| TypeScript / production build | pass |
+The test script uses dedicated test databases, including a disposable feature-test database. See [testing details](docs/testing.md) for scope and recorded results. Test definitions and historical reports should not be mistaken for a fresh run on another machine.
 
-The test script uses its own databases and never touches the demo database. Details: [docs/testing.md](docs/testing.md).
+## Prototype boundaries
 
----
+The project has no production authentication, real member messaging, clinical record integration, automatic payment adjudication, or validated real-world fraud probabilities. The decision policy is an internal demonstration policy; external-referral approval remains pending because verified supervisor identities are not implemented. No regulatory certification is claimed.
 
-## Configuration
+Thresholds and weights are prototype choices. Constructed scenario success is not independent validation. Supply peers are retrospective, forecast snapshots within a split can overlap, and changed source populations require a stronger versioning strategy before production use. Source-linked evidence and human review help investigators assess these limits.
 
-`.env` (copy `.env.example`; never commit it):
+## Explore the project
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `POSTGRES_PASSWORD` | `claimshield_local_demo` | Local database password |
-| `GROQ_API_KEY` | empty | Optional; enables AI briefs. A Windows user environment variable of the same name takes precedence. |
-| `GROQ_MODEL` / `GROQ_TIMEOUT_SECONDS` | `openai/gpt-oss-120b` / `45` | Groq model and timeout |
-| `STREAM_DEFAULT_RATE` / `STREAM_DEFAULT_COUNT` | `1` / `60` | API defaults; the dashboard always starts 90 claims at 1/s |
-| `STREAM_ENRICHMENT_INTERVAL_SECONDS` | `15` | Background micro-batch interval |
-| `STREAM_MAX_BACKLOG` | `20` | Generation pauses above this screening backlog |
+[Three-feature algorithms](docs/investigation_extensions.md) · [Demo script](docs/demo_script.md) · [Decision policy](docs/POLICY_DECISIONS.md) · [Data dictionary](docs/data_dictionary.md) · [API contracts](docs/api_contracts.md) · [Machine setup](SETUP_NEW_MACHINE.md)
 
-After setting a Groq key, run:
-
-```powershell
-docker compose up -d --force-recreate backend worker
-docker compose exec backend python -m app.cli groq-check
-```
-
-Each AI report is a billable Groq call. Keys never reach the frontend or API responses, and only a bounded synthetic evidence snapshot is sent.
-
-**CLI** (`docker compose exec backend python -m app.cli <command>`):
-
-| Command | What it does |
-|---|---|
-| `audit` | Validate the CSVs only |
-| `import` | Import the CSVs |
-| `analyze` | Full analysis |
-| `train` | Train the models |
-| `all` | Import, train and analyze |
-| `augment` | Add the scenario pack |
-| `groq-check` | Check the Groq connection |
-
-**Rebuilding images:** `backend`, `worker` and `stream` are separate images built from `./backend`. After backend changes, run `docker compose build backend worker stream`.
-
----
-
-## Project structure
-
-```
-backend/
-  alembic/versions/        migrations 0001–0004 (additive only)
-  app/
-    main.py                REST API (/api/v1)
-    models.py, schemas.py  tables and contracts
-    worker.py              persistent job queue (import, analysis, stream enrichment)
-    stream_runner.py       live-stream runner
-    cli.py, scenarios.py   commands and scenario pack
-    config/                detector thresholds, evidence catalog
-    services/              ingestion · detection · ml · graph · radar · phoenix · cases · evidence ·
-                           briefs · pipeline · stream · stream_generator · policy · repository
-  tests/                   unit and integration suites
-frontend/src/
-  App.tsx, api.ts, types.ts, theme.css
-  pages/                   System (dashboard) · LiveMonitor · Cases · Investigation · Compliance ·
-                           Claims · Intelligence · Radar
-  *.test.tsx               Vitest suites
-data/synthetic/            12 source CSVs (read-only); data/evaluation/ holds offline labels only
-artifacts/                 models (generated), evaluation reports
-docs/                      architecture, guides, demos, model cards
-scripts/test.ps1           full test run
-```
-
-### Source dataset
-
-The source dataset has:
-- 4,000 members, 250 providers and 60 facilities
-- 20,000 claims with 27,221 lines, 7,081 supply items and 1,850 estimates
-- 19,705 encounters, 2,000 referrals and 410 relationships
-- 150 investigation histories and 10 synthetic billing policies
-
-Service dates span 2024-10-01 to 2026-09-30.
-
-The scenario pack appends 14 providers and 1,151 claims, along with their encounters, referrals and profiles. Evaluation labels (`data/evaluation/ground_truth.csv`) are used only for offline evaluation and never by detectors.
-
----
-
-## Documentation
-
-| Document | Contents |
-|---|---|
-| [docs/architecture.md](docs/architecture.md) | Complete system architecture |
-| [docs/SCREEN_GUIDE.md](docs/SCREEN_GUIDE.md) | Every screen and section, where Groq is used, where each engine can be demonstrated |
-| [docs/demo_script.md](docs/demo_script.md) | Main investigation demo (Member Radar → Phoenix → case → Next-Best-Evidence → confirmations → decisions) |
-| [docs/LIVE_STREAM_DEMO.md](docs/LIVE_STREAM_DEMO.md) | Live stream demo walkthrough |
-| [docs/LIVE_CLAIMS_MONITORING.md](docs/LIVE_CLAIMS_MONITORING.md) | Live monitoring design, coverage semantics, measured performance |
-| [docs/POLICY_DECISIONS.md](docs/POLICY_DECISIONS.md) | Policy rules, recommendations and approvals |
-| [docs/investigation_extensions.md](docs/investigation_extensions.md) | Next-Best-Evidence, Member Radar and Phoenix algorithms and thresholds |
-| [docs/model_cards.md](docs/model_cards.md) · [docs/data_dictionary.md](docs/data_dictionary.md) · [docs/api_contracts.md](docs/api_contracts.md) | Models, data, API |
-| [docs/testing.md](docs/testing.md) | Test suites |
-| [docs/IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md) | What has been built |
-| [SETUP_NEW_MACHINE.md](SETUP_NEW_MACHINE.md) | Reproduce the project on another laptop |
-
----
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---|---|
-| `docker version` shows no Server | Start Docker Desktop (WSL2 / Linux containers) |
-| Build fails with a registry or TLS timeout | Network issue; re-run the build |
-| Empty dashboard | Run the data commands in [Quick start](#quick-start) |
-| *Stream runner offline* | `docker compose up -d stream`; then `docker compose logs --tail 100 stream` |
-| Stream claims never reach *Fully analyzed* | Check the `worker` service; rebuild with `docker compose build backend worker stream` |
-| Briefs show *DETERMINISTIC* | No Groq key or Groq unavailable; expected offline |
-| Rejected import | See *Data ingestion → Validation issues* and `artifacts/evaluation/latest_audit.json` |
-| Port conflict | Free ports 5173, 8000 and 55432 |
-
----
-
-## Limitations
-
-- **Identity:** no authentication or roles. Policy approvals therefore remain pending by design.
-- **Unvalidated heuristics:** thresholds, weights and the decision policy are internal demo choices on synthetic data, not CMS, HIPAA or any other official rules.
-- **Cold-start anomalies:** Isolation Forest treats a brand-new provider's volume ramp as anomalous.
-- **Scale:** single-node snapshot analytics sized for about 20k claims.
-- **Replay stream:** the live stream replays past service dates; it is a demonstration feed, not a prospective real-time integration.
-- **Audit immutability:** enforced against the application, not against a database administrator.
+For a full-platform demonstration, open the dashboard and a SupplyTrace claim first; show the P0252 flagship investigation next; finish with the forecast/model card, AI challenger, policy readiness and audit timeline. This shows both platform breadth and the three distinctive workflows.
