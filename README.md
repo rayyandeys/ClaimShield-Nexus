@@ -1,212 +1,312 @@
 # ClaimShield Nexus
 
-**From Suspicious Claims to Defensible Investigations** · Team CIPHER
+**From suspicious claims to defensible investigations** · Team CIPHER · Build to Care hackathon
 
-A local healthcare payment-integrity investigation prototype. ClaimShield combines deterministic claim screening, procedure-matched consumable analysis, local machine learning, source-backed relationship graphs, and human case review. It helps an investigator identify questions worth pursuing and document decisions with evidence.
+ClaimShield Nexus is a local investigation platform for healthcare payment integrity.
 
-All patient, provider, facility and claim records are synthetic. Screening indicators do not establish fraud, intent, clinical necessity, or recoverable overpayments. This is a hackathon decision-support prototype with a labeled demo identity, not production authentication, regulatory certification or clinical validation.
+- **Detection:** it screens claims with deterministic rules, item-level supply analysis, machine learning, relationship graphs and new-member and successor-provider detectors.
+- **Cases:** it fuses their source-linked findings into ranked investigation cases.
+- **Investigation:** it helps an investigator decide what evidence to get next, record reviewed decisions, and recommend actions under an explicit policy, with a full audit trail.
+- **Live stream:** a live mode streams synthetic claims through the whole pipeline in real time.
 
-## Start locally
+> **Synthetic data only.** Every patient, provider, facility and claim is synthetic. Findings are screening indicators for human review. They do not establish fraud, intent, clinical necessity or recoverable overpayment. Review exposure is an upper bound, not a loss estimate. Authentication is a labeled demo identity, not a production login.
 
-Prerequisite: Windows 11 with Docker Desktop running Linux containers / WSL2. Host Python and Node are **not required**.
+---
 
-In PowerShell, from this directory:
+## Contents
 
-```powershell
-Copy-Item .env.example .env
-# Optional: edit .env to set a local database password and a Groq key.
-docker compose up --build -d
-docker compose exec backend python -m app.cli all
-```
+[Features](#features) · [Quick start](#quick-start) · [Using the app](#using-the-app) · [Architecture](#architecture) · [Results](#results) · [Testing](#testing) · [Configuration](#configuration) · [Project structure](#project-structure) · [Documentation](#documentation) · [Troubleshooting](#troubleshooting) · [Limitations](#limitations)
 
-The backend applies Alembic migrations automatically before becoming healthy. The second command imports the supplied CSV snapshot, trains models and runs the complete analysis pipeline. Alternatively, open **Data ingestion → Import & analyze** to run the same processing through the persistent worker queue.
+---
 
-| Service | Local address |
+## Features
+
+### Detection engines
+| Engine | What it finds |
 |---|---|
-| Investigator console | http://localhost:5173 |
-| API | http://localhost:8000 |
-| OpenAPI documentation | http://localhost:8000/docs |
-| PostgreSQL | 127.0.0.1:55432 |
+| **Claim Rules** | Duplicate submissions, missing encounters, upcoding, unbundling, early refills, overlapping appointments, excessive utilization (gated by a synthetic billing-policy catalog) |
+| **SupplyTrace** | Itemized consumable quantity and unit-price outliers against matched peers (same procedure, complexity and supply code), duplicate supply lines, estimate-to-final drift |
+| **Isolation Forest** | Provider behavior anomalies from time-consistent features, reported as a percentile, not a probability |
+| **30/60/90-day forecasts** | Recurrence of observable billing events (HistGradientBoosting with a logistic benchmark, trained and tested in time order) |
+| **Nexus graph** | Provider, facility, owner, member and claim relationships; referral concentration corroborated by independent findings |
+| **Member Radar** | Providers that suddenly bill many previously unrelated members; member risk signals scored with robust (median-based) statistics |
+| **Phoenix detector** | Possible successors of suspended, revoked or closed providers, scored as a five-component similarity (not a probability) |
 
-Container communication uses `db:5432` and `backend:8000`. PostgreSQL uses the `claimshield-nexus_postgres_data` named volume. Source CSVs are mounted read-only; model and evaluation artifacts are written under `artifacts/`. Host ports bind only to the loopback interface.
+### Investigation
+- **Cases and SIU queue:** findings are consolidated into cases, which the existing SIU scorer (`siu-1.0`) ranks. The score combines severity, evidence, unique-claim exposure, member impact, recurrence and the number of independent detection engines. A capacity slider limits the queue to what the team can handle.
+- **Case Workspace:** findings, evidence records, claims, timeline, finding review (explain, keep unresolved or escalate against verified records) and investigator actions.
+- **Next-Best-Evidence:** the evidence requests most likely to change the review decision, with read-only "what-if" simulations scored by the production scorer, plus a full evidence-request lifecycle.
+- **Member confirmations:** simulated member notices (no one is ever contacted); responses count only after investigator review. **Spillover** shows a member batch's other claims as leads.
+- **Compliance & decisions:** an internal demo policy, `CLAIMSHIELD-SIU-V1`, evaluates four actions:
+  - Request more evidence
+  - Monitor provider
+  - Recommend full investigation
+  - Recommend external referral
 
-For later runs:
+  Each action gets a status: Allowed, Needs Evidence, Requires Approval or Blocked. The status comes from reviewed evidence, never from the priority score. Recommendations are enforced on the server and audited. The SIU queue shows each case's **Decision readiness**.
+- **AI briefs (optional):** Groq generates a brief, an evidence challenger or an evidence investigator report. Each fact is checked locally against the source records, and the app falls back to a deterministic report without a key.
 
-```powershell
-docker compose up -d
-docker compose ps
-docker compose logs --tail 100 worker
-docker compose stop
-```
+### Live Claims Monitoring
+Start a session from the dashboard: 90 synthetic claims at one per second. Each claim goes through two layers:
+- **Immediately:** it is validated, saved, and screened by Claim Rules and SupplyTrace, and any findings update cases and rankings.
+- **Background micro-batches:** the existing worker runs the stored ML models, the graph, Member Radar and Phoenix, scoped to the affected providers and members.
 
-Do not remove the database volume unless you intend to discard all imported data and investigator decisions.
+Every claim's 12 processing stages are tracked, and a claim is marked *Fully analyzed* only when all of them have finished. The event feed shows only committed database events, and each event links to its claim, case or provider.
 
-## What is implemented
+---
 
-- Strict, transactional ingestion of all 12 operational CSVs, with checksums, source provenance, validation reports, repeat-import prevention and rejection of conflicting source IDs.
-- PostgreSQL-backed worker jobs with safe `SKIP LOCKED` claiming, leases, heartbeat renewal, restart recovery and bounded retries.
-- Duplicate submission, synthetic code mismatch, configured package unbundling, encounter gaps, provider appointment overlap, early refill and rolling utilization screening.
-- SupplyTrace: procedure/complexity/item-matched median and IQR comparisons, quantity and price outliers, duplicate items, estimate-to-final drift, and source-linked synthetic bundling findings.
-- A persisted IsolationForest pipeline with specialty-relative amount features and historical reference percentiles. Scores are not probabilities.
-- Three independently trained HistGradientBoosting classifiers for 30/60/90-day observable-event recurrence, with LogisticRegression benchmarks, chronological train/validation/test periods and a 90-day embargo.
-- NetworkX source graph, connected-component and degree statistics, shared ownership context, and referral concentration requiring independent endpoint findings. Cytoscape supports selection, zoom, pan, type/relationship filters and an as-of date.
-- Stable finding/evidence identifiers, shared typed contracts, case consolidation, unique-claim review exposure and transparent capacity-aware ranking.
-- Investigator assignments, notes, record requests, validated case-state transitions, finding resolutions and PostgreSQL-enforced append-only audit events.
-- Groq evidence investigator, challenger and brief synthesis with strict JSON schema, exact local source-value verification, bounded output, timeout/retries, caching and offline fallback.
-- Connected React screens for overview, ingestion, claims, SupplyTrace, network, forecasts, queue, case review and evaluation.
+## Quick start
 
-## Investigation extensions
-
-- **Next-Best-Evidence** (Case Workspace → *Next evidence*, SIU queue card): recommends the three evidence requests most likely to change a capacity-limited review decision, using the production SIU scorer for every hypothetical. Read-only *what-if* simulations, plus a full evidence-request lifecycle with reviewed outcomes.
-- **Compromised Member ID Radar** (*Member radar* page): five interpretable member signals and provider-level suspicious new-member batches, with a clearly simulated member-confirmation loop and spillover leads.
-- **Phoenix Provider Detector**: possible successors of suspended, revoked or closed providers, scored on five transparent components and shown as dashed `possible_successor` edges in Nexus network.
-
-These need the scenario pack (synthetic profiles and scenarios appended to the original snapshot):
+**Requirements:** Windows 10/11 with WSL2 and Docker Desktop (Linux containers), and Git. Host Python and Node are not needed.
 
 ```powershell
+git clone https://github.com/rayyandeys/ClaimShield-Nexus.git
+cd ClaimShield-Nexus
+Copy-Item .env.example .env
+docker compose up --build -d
+
+# Import data, train models, analyze (a few minutes)
+docker compose exec backend python -m app.cli all
+# Add the investigation scenario pack, then re-analyze
 docker compose exec backend python -m app.cli augment
 docker compose exec backend python -m app.cli analyze
 ```
 
-Details, thresholds and limits: [investigation extensions](docs/investigation_extensions.md).
+Open **http://localhost:5173**.
 
-## Live Claims Monitoring
+| Service | Address |
+|---|---|
+| Investigator console | http://localhost:5173 |
+| API / OpenAPI docs | http://localhost:8000 · http://localhost:8000/docs |
+| PostgreSQL | 127.0.0.1:55432 (user `claimshield`) |
 
-**Overview → Live Claims Monitor → Start Live Simulation** streams synthetic claims (default 60 at one per second) through the real pipeline. Each claim is validated and committed to PostgreSQL. It is then screened immediately by Claim Rules and SupplyTrace, and enriched in background micro-batches on the existing worker: Isolation Forest and forecast inference with the stored models, Nexus graph, Member Radar and Phoenix, scoped to the affected providers and members. Findings, cases and SIU priorities come from the existing engines and scorer. A per-claim inspector shows all 12 stages, and a claim is *Fully analyzed* only when every stage is terminal. Every feed event is a committed database event, and clicking one opens the claim, case or provider view.
+When setup is complete, the database holds **21,151 claims, 1,599 findings and 898 cases**, all five services report `healthy` in `docker compose ps`, and P0252 tops the SIU queue at priority 86.7.
 
-The runner is the `stream` compose service (started by `docker compose up -d`; idle until a session starts). Each session uses its own synthetic provider cohort, so replays never touch the original scenario records. Details: [live claims monitoring](docs/LIVE_CLAIMS_MONITORING.md) · demo walkthrough: [live stream demo](docs/LIVE_STREAM_DEMO.md).
+Day-to-day commands:
 
-## Policy-governed decisions
+```powershell
+docker compose up -d        # start
+docker compose ps           # status
+docker compose logs --tail 100 worker
+docker compose stop         # stop (keeps data)
+```
 
-Case Workspace → **Compliance & decisions** evaluates four investigator actions under the internal demo policy `CLAIMSHIELD-SIU-V1`, using reviewed evidence and never the priority score. It records recommendations with audit events. The SIU queue shows **Decision readiness**. Approvals stay pending because the demo has no authentication. Details: [policy decisions](docs/POLICY_DECISIONS.md).
+Never run `docker compose down -v`: it deletes the database, including every investigator decision.
 
-## Architecture and stack
+To set up a second machine, see **[SETUP_NEW_MACHINE.md](SETUP_NEW_MACHINE.md)**. It is written for an AI agent, and includes copying an existing database.
+
+---
+
+## Using the app
+
+| Screen | Route | Highlights |
+|---|---|---|
+| Dashboard | `/` | Totals, the **Live Claims Monitor** (collapsible; Start/Stop), claims trend, case severity, top investigations, system status |
+| SIU queue | `/queue` | Ranked cases, capacity, decision readiness, evidence that could change the queue |
+| Case Workspace | `/cases/:id` | Tabs: Findings · Next evidence · Requests · **Compliance & decisions** · Confirmations · Spillover · Evidence · Claims · Brief · Timeline |
+| Claims / SupplyTrace | `/claims`, `/supplytrace` | Search the ledger; claim detail with lines, encounter, findings; supply peer comparison |
+| Nexus network | `/network?entity=` | Interactive graph with filters, an as-of date and a Phoenix edge inspector |
+| Member radar | `/radar` | New-member batches, threshold checks, provider–member graph, member signals |
+| Future risk | `/forecast?provider=` | 30/60/90-day forecasts and anomaly percentile |
+| Data ingestion | `/ingestion` | Import, validate and analyze; upload a CSV snapshot; job queue |
+| Models & evaluation | `/evaluation` | Model cards, held-out metrics, scenario evaluation |
+
+**Demo cases** (from the scenario pack):
+- **`CASE-27cd5d9b606a132d854e` (P0252):** a suspicious new-member batch plus a possible successor of the revoked P0251 (similarity 0.82).
+- **`CASE-a2bd7630032dd71dfa4d` (P0258):** a look-alike successor that a documented acquisition explains.
+- **P0259:** a legitimate fast-growing practice that is not flagged.
+
+Walkthroughs: [main demo](docs/demo_script.md) · [live stream demo](docs/LIVE_STREAM_DEMO.md) · [every screen explained](docs/SCREEN_GUIDE.md).
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart LR
-  CSV[Read-only synthetic CSVs] --> Audit[Audit and transactional importer]
-  Audit --> DB[(PostgreSQL 17)]
-  UI[React investigator console] --> API[FastAPI]
-  API --> DB
-  API --> Jobs[Persistent job queue]
-  Jobs --> Worker[Python analytics worker]
-  Worker --> Rules[Rules and SupplyTrace]
-  Worker --> ML[IsolationForest and horizon classifiers]
-  Worker --> Graph[NetworkX]
-  Rules --> Evidence[Finding and evidence contract]
-  ML --> Evidence
-  Graph --> Evidence
-  Evidence --> Cases[Consolidated cases and SIU ranking]
-  Cases --> DB
-  API --> Brief[Local evidence retrieval and verification]
-  Brief -. optional .-> Groq[Groq structured synthesis]
-  UI --> Review[Human review and reassessment]
-  Review --> API
+  UI[React console] -- /api/v1 --> API[FastAPI]
+  API --> DB[(PostgreSQL 17)]
+  API -- jobs --> Q[(job queue)]
+  Q --> W[Analytics worker]
+  S[Stream runner] --> DB
+  W --> E[Rules · SupplyTrace · Isolation Forest · Forecasts · Graph · Member Radar · Phoenix]
+  E --> F[Findings + evidence] --> C[Cases + SIU scorer]
+  C --> DB
+  API -. optional .-> G[Groq, verified locally]
 ```
 
-Python 3.12, FastAPI, Pydantic v2/Settings, SQLAlchemy 2, Alembic, psycopg 3, HTTPX, pandas, NumPy, SciPy, scikit-learn, joblib, NetworkX, Groq SDK and pytest. The frontend uses React, TypeScript, Vite, Tailwind, a shadcn-style Radix/CVA button primitive, React Router, TanStack Query/Table, ECharts, Cytoscape, Lucide, React Hook Form, Zod and Vitest. There is no external database, message broker or hosted model inference for the trained models.
+Five Docker services: `db`, `backend`, `worker`, `stream` and `frontend`.
 
-See [architecture](docs/architecture.md), [discovered source schemas](docs/data_dictionary.md), [model cards](docs/model_cards.md), [API contracts](docs/api_contracts.md), [testing](docs/testing.md) and [demo walkthrough](docs/demo_script.md).
+- **Single source of truth:** PostgreSQL holds the source tables, findings, cases, the job queue, stream state and an append-only audit trail.
+- **Shared contracts:** every path that creates findings uses one finding and evidence format, and every ranking uses the same SIU scorer.
+- **Safe re-runs:** IDs derived from content make re-analysis and retries idempotent, and reviewer decisions are never overwritten.
+- **Concurrency:** advisory locks and leases (`SKIP LOCKED`) keep concurrent processing safe.
 
-## Source dataset
+**Stack:**
+- **Backend:** Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 Core, Alembic, psycopg 3.
+- **Analytics:** pandas, NumPy, SciPy, scikit-learn, NetworkX, Groq SDK.
+- **Frontend:** React 19, TypeScript, Vite, TanStack Query and Table, React Router, ECharts, Cytoscape.js, Lucide, Tailwind v4.
+- **Tests:** pytest and Vitest.
 
-| Table | Actual rows |
-|---|---:|
-| members | 4,000 |
-| providers | 250 |
-| facilities | 60 |
-| encounters | 19,705 |
-| claims | 20,000 |
-| claim_lines | 27,221 |
-| supply_items | 7,081 |
-| claim_estimates | 1,850 |
-| referrals | 2,000 |
-| relationships | 410 |
-| investigation_history | 150 |
-| billing_policies | 10 |
-| ground_truth (evaluation only) | 20,000 |
+Full details: **[docs/architecture.md](docs/architecture.md)**.
 
-Service dates span **2024-10-01 through 2026-09-30**. Source seed is `20261008`. The source archive, README and generation script were not present; the extracted CSVs and three metadata JSON files were present. Existing data is sufficient, so no replacement dataset was generated. Original files are preserved.
+---
 
-The original dataset has 130 empty encounter references and no populated correction references. Correction exceptions are exercised with automated synthetic test fixtures. The audit interprets naive source timestamps as UTC and reports contextual inconsistencies without fabricating documentation. `supply_items` describe amounts already included in `claim_lines`: they are never added twice.
+## Results
 
-`billed_amount_usd`, `allowed_amount_usd`, `paid_amount_usd`, and `member_responsibility_usd` remain distinct. The source contains a simplified synthetic payment model; the application validates its arithmetic and retains its amounts. Potential review exposure is the sum of unique active-flagged paid amounts plus pending allowed amounts. It is an upper bound for review, **not** a loss estimate or confirmed recoverable overpayment.
+All results are measured on synthetic data with injected patterns. They describe this prototype, not real-world fraud detection performance.
 
-## Import and analysis commands
+| Measure | Result |
+|---|---|
+| Held-out Precision@100 claims: rules only / + ML / + graph + SupplyTrace | **0.39 / 0.59 / 0.92** |
+| Forecast test PR-AUC, 30 / 60 / 90 days | ≈ 0.07 / 0.15 / 0.21 |
+| Scenario pack (Member Radar and Phoenix) | 6/6 scenarios agree, no unexpected flags |
+| Live stream (60 claims at 1/s, local Docker) | 60/60 fully analyzed, 0 failed; end-to-end latency mean 11.2 s, p95 18.0 s; micro-batch ≈ 3.6 s; dashboard API ≈ 48 ms median during the stream |
+
+Raw reports are in `artifacts/evaluation/`.
+
+---
+
+## Testing
 
 ```powershell
-docker compose exec backend python -m app.cli audit
-docker compose exec backend python -m app.cli import
-docker compose exec backend python -m app.cli analyze
-docker compose exec backend python -m app.cli train
+# Everything: backend unit, feature/policy/stream integration, frontend
+powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
+
+# Read-only smoke test against the running API
+docker compose exec backend python -m app.smoke
+
+# Measured live-stream session (writes: starts a real session)
+docker compose exec backend python -m app.stream_measure --claims 60 --rate 1
 ```
 
-`analyze` and `train` run the integrated analytics pipeline, including refreshing model artifacts and case context. Use one operation at a time. The UI queues one active job, exposes persistent progress, and prevents duplicate submissions while a job runs. Repeated identical imports insert zero new records. A complete malformed snapshot is rejected transactionally; its batch report remains available. Uploads require all 12 operational CSVs with original names. The source snapshot is append-only: changed values under an existing ID are rejected rather than silently replacing evidence.
+| Suite | Latest result |
+|---|---|
+| Backend (unit and review workflow, `claimshield_test`) | 122 passed |
+| Integration (features, policy, live stream, disposable `claimshield_features_test`) | 32 passed |
+| Frontend (Vitest) | all passing (28 tests) |
+| TypeScript / production build | pass |
 
-Operational APIs do not return hidden scenario labels. Only offline aggregate evaluation reads `data/evaluation/ground_truth.csv`.
+The test script uses its own databases and never touches the demo database. Details: [docs/testing.md](docs/testing.md).
 
-## Methods and limits
+---
 
-Rules use the imported fictional policy catalog; no CMS/NCCI or real clinical compliance is claimed. Missing encounters are documentation gaps. Duplicate detection excludes both corrected claims and replaced originals. Timing uses recorded intervals and calls out possible staffing or timestamp errors. SupplyTrace compares the same procedure, recorded complexity and supply code, requires at least 20 peers, and uses Q3 + 3 × max(IQR, 10% of median, 0.01) as its upper threshold. An estimate increase above 50% is a review indicator, not a contractual violation.
+## Configuration
 
-Provider models use as-of features, known payment dates, historical investigation outcome-availability dates and specialty-relative amount statistics. Ground-truth labels are excluded from features. Forecast target: a provider with previous defined events has at least one further event, or a provider without prior events has at least two events, in the future horizon. Defined events are synthetic consultation-code mismatch, package conflict or early refill. Model quality and sample sizes are visible; probabilities are not post-hoc calibrated or forced to increase with horizon.
+`.env` (copy `.env.example`; never commit it):
 
-Cases connect shared-claim findings and provider-month groups; they do not merge every historical claim from a provider. Ranking weights: severity 30, completeness 20, log-normalized exposure 20, member impact 10, 90-day recurrence 10, and independent engine corroboration 10. Scoring is a prioritization policy, not a probability. Reviewer resolutions remove the active finding contribution, recalculate exposure without double counting, increment evidence version and preserve the original finding.
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTGRES_PASSWORD` | `claimshield_local_demo` | Local database password |
+| `GROQ_API_KEY` | empty | Optional; enables AI briefs. A Windows user environment variable of the same name takes precedence. |
+| `GROQ_MODEL` / `GROQ_TIMEOUT_SECONDS` | `openai/gpt-oss-120b` / `45` | Groq model and timeout |
+| `STREAM_DEFAULT_RATE` / `STREAM_DEFAULT_COUNT` | `1` / `60` | API defaults; the dashboard always starts 90 claims at 1/s |
+| `STREAM_ENRICHMENT_INTERVAL_SECONDS` | `15` | Background micro-batch interval |
+| `STREAM_MAX_BACKLOG` | `20` | Generation pauses above this screening backlog |
 
-## Groq setup
-
-Set these only in the local `.env` file:
-
-```dotenv
-GROQ_API_KEY=your_key_here
-GROQ_MODEL=openai/gpt-oss-120b
-GROQ_TIMEOUT_SECONDS=45
-```
-
-Then recreate backend and worker containers:
+After setting a Groq key, run:
 
 ```powershell
 docker compose up -d --force-recreate backend worker
 docker compose exec backend python -m app.cli groq-check
 ```
 
-The model ID is configurable, including `openai/gpt-oss-20b`. The explicit check calls Groq's model listing endpoint. Keys never go to the frontend or API responses. Only bounded synthetic case evidence is transmitted when generating a report. Core processing works offline after dependencies/images are downloaded.
+Each AI report is a billable Groq call. Keys never reach the frontend or API responses, and only a bounded synthetic evidence snapshot is sent.
 
-The LLM selects exact evidence field/value facts and proposes explicitly hypothetical alternatives. All factual narrative and financial sections are composed locally. Unsupported evidence IDs, mismatched values, cross-finding references and unverified numeric prose reject the output. Verification does not prove clinical correctness or full factual completeness. The model cannot execute SQL, change a case or resolve a finding. SDK transient-error retries are bounded; malformed responses and provider failures return a deterministic source-linked report. See the official [Groq structured-output documentation](https://console.groq.com/docs/structured-outputs) used for this integration.
+**CLI** (`docker compose exec backend python -m app.cli <command>`):
 
-## Evaluation and tests
+| Command | What it does |
+|---|---|
+| `audit` | Validate the CSVs only |
+| `import` | Import the CSVs |
+| `analyze` | Full analysis |
+| `train` | Train the models |
+| `all` | Import, train and analyze |
+| `augment` | Add the scenario pack |
+| `groq-check` | Check the Groq connection |
 
-Machine-readable results live in `artifacts/evaluation/`; isolated test artifacts live in `artifacts/test-run/`. Model cards retain full feature lists, split dates, class counts, PR-AUC, ROC-AUC where defined, Brier score, calibration bins, Precision@K, Recall@K and logistic benchmarks.
+**Rebuilding images:** `backend`, `worker` and `stream` are separate images built from `./backend`. After backend changes, run `docker compose build backend worker stream`.
 
-The initial actual run produced 1,510 findings and 894 cases. On 7,394 held-out synthetic claims, Precision@100 was 0.39 for rules, 0.59 for rules + ML, and 0.92 for rules + ML + graph + SupplyTrace. Forecast test PR-AUC was approximately 0.070 / 0.145 / 0.214 for 30 / 60 / 90 days. These are synthetic retrospective results, not real-world fraud detection claims. See the generated reports for the latest values and limitations.
+---
 
-```powershell
-# Unit suite
-docker compose run --rm backend pytest -q -m "not integration"
-# Complete isolated integration suites (claimshield_test, plus a disposable
-# claimshield_features_test for the scenario pack and investigation extensions)
-./scripts/test.ps1
-# Frontend component tests
-docker compose exec frontend npm test
-# Read-only live API smoke test
-docker compose exec backend python -m app.smoke
-# Measured live-stream session (writes: starts a real 60-claim session)
-docker compose exec backend python -m app.stream_measure --claims 60 --rate 1
+## Project structure
+
 ```
+backend/
+  alembic/versions/        migrations 0001–0004 (additive only)
+  app/
+    main.py                REST API (/api/v1)
+    models.py, schemas.py  tables and contracts
+    worker.py              persistent job queue (import, analysis, stream enrichment)
+    stream_runner.py       live-stream runner
+    cli.py, scenarios.py   commands and scenario pack
+    config/                detector thresholds, evidence catalog
+    services/              ingestion · detection · ml · graph · radar · phoenix · cases · evidence ·
+                           briefs · pipeline · stream · stream_generator · policy · repository
+  tests/                   unit and integration suites
+frontend/src/
+  App.tsx, api.ts, types.ts, theme.css
+  pages/                   System (dashboard) · LiveMonitor · Cases · Investigation · Compliance ·
+                           Claims · Intelligence · Radar
+  *.test.tsx               Vitest suites
+data/synthetic/            12 source CSVs (read-only); data/evaluation/ holds offline labels only
+artifacts/                 models (generated), evaluation reports
+docs/                      architecture, guides, demos, model cards
+scripts/test.ps1           full test run
+```
+
+### Source dataset
+
+The source dataset has:
+- 4,000 members, 250 providers and 60 facilities
+- 20,000 claims with 27,221 lines, 7,081 supply items and 1,850 estimates
+- 19,705 encounters, 2,000 referrals and 410 relationships
+- 150 investigation histories and 10 synthetic billing policies
+
+Service dates span 2024-10-01 to 2026-09-30.
+
+The scenario pack appends 14 providers and 1,151 claims, along with their encounters, referrals and profiles. Evaluation labels (`data/evaluation/ground_truth.csv`) are used only for offline evaluation and never by detectors.
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Complete system architecture |
+| [docs/SCREEN_GUIDE.md](docs/SCREEN_GUIDE.md) | Every screen and section, where Groq is used, where each engine can be demonstrated |
+| [docs/demo_script.md](docs/demo_script.md) | Main investigation demo (Member Radar → Phoenix → case → Next-Best-Evidence → confirmations → decisions) |
+| [docs/LIVE_STREAM_DEMO.md](docs/LIVE_STREAM_DEMO.md) | Live stream demo walkthrough |
+| [docs/LIVE_CLAIMS_MONITORING.md](docs/LIVE_CLAIMS_MONITORING.md) | Live monitoring design, coverage semantics, measured performance |
+| [docs/POLICY_DECISIONS.md](docs/POLICY_DECISIONS.md) | Policy rules, recommendations and approvals |
+| [docs/investigation_extensions.md](docs/investigation_extensions.md) | Next-Best-Evidence, Member Radar and Phoenix algorithms and thresholds |
+| [docs/model_cards.md](docs/model_cards.md) · [docs/data_dictionary.md](docs/data_dictionary.md) · [docs/api_contracts.md](docs/api_contracts.md) | Models, data, API |
+| [docs/testing.md](docs/testing.md) | Test suites |
+| [docs/IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md) | What has been built |
+| [SETUP_NEW_MACHINE.md](SETUP_NEW_MACHINE.md) | Reproduce the project on another laptop |
+
+---
 
 ## Troubleshooting
 
-- Docker connection error: start Docker Desktop, select Linux containers, and verify `docker version` shows both client and server. Local automation may require permission to access the Docker named pipe.
-- Port conflict: check 5173, 8000 and 55432 are free. No other project services need to be stopped.
-- Empty console: run **Import & analyze** and inspect the Jobs table. Startup alone does not automatically import or train.
-- Rejected import: inspect **Data ingestion → Validation issues** and `artifacts/evaluation/latest_audit.json`. Original input remains unchanged; conflicting source IDs require a separately versioned dataset rather than overwriting evidence.
-- Worker failure: inspect `docker compose logs --tail 100 worker`. Expired running jobs can be reclaimed after their 90-second lease. Three attempts is the upper bound; validation errors fail immediately.
-- Unavailable forecasts: inspect the model card. Every split needs both classes and a minimum sample count; no synthetic probabilities are substituted.
-- Live Claims Monitor cannot start: *Stream runner offline* means the `stream` service is not running (`docker compose up -d stream`; logs: `docker compose logs --tail 100 stream`). A 409 means another session is still active or draining. Claims waiting for background enrichment need the `worker` service.
-- Groq unavailable: the console displays a deterministic report and the reason category. Live Groq generation requires a valid configured key and provider access.
+| Symptom | Fix |
+|---|---|
+| `docker version` shows no Server | Start Docker Desktop (WSL2 / Linux containers) |
+| Build fails with a registry or TLS timeout | Network issue; re-run the build |
+| Empty dashboard | Run the data commands in [Quick start](#quick-start) |
+| *Stream runner offline* | `docker compose up -d stream`; then `docker compose logs --tail 100 stream` |
+| Stream claims never reach *Fully analyzed* | Check the `worker` service; rebuild with `docker compose build backend worker stream` |
+| Briefs show *DETERMINISTIC* | No Groq key or Groq unavailable; expected offline |
+| Rejected import | See *Data ingestion → Validation issues* and `artifacts/evaluation/latest_audit.json` |
+| Port conflict | Free ports 5173, 8000 and 55432 |
 
-## Known prototype boundaries
+---
 
-No production authentication, clinical record system, real billing policy feed, real patient data, prospective validation or automatic adjudication is included. Shared-ownership analysis is contextual; connections never establish collusion. Supply peers are retrospective snapshot statistics, and forecast observations within a split can overlap. Upload is a complete CSV snapshot rather than an arbitrary schema mapper. Source records are immutable and analysis reruns are stable for the same snapshot; changing the source population can change consolidation boundaries and needs a versioned migration strategy before production use.
+## Limitations
 
-The existing source has no documented corrected claims. The demo resolves a narrow estimate-variance question using its existing estimate/final-line records while preserving other suspicious findings. Clinical necessity remains an open review question. Groq failure paths are tested with controlled mocks; a live response is only verified when a key is provided and an explicit live test succeeds.
+- **Identity:** no authentication or roles. Policy approvals therefore remain pending by design.
+- **Unvalidated heuristics:** thresholds, weights and the decision policy are internal demo choices on synthetic data, not CMS, HIPAA or any other official rules.
+- **Cold-start anomalies:** Isolation Forest treats a brand-new provider's volume ramp as anomalous.
+- **Scale:** single-node snapshot analytics sized for about 20k claims.
+- **Replay stream:** the live stream replays past service dates; it is a demonstration feed, not a prospective real-time integration.
+- **Audit immutability:** enforced against the application, not against a database administrator.
